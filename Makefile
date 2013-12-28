@@ -13,9 +13,6 @@ LAUNCH = launch   $(SNOPT_WRAPPER)
 
 LAUNCH_O = $(LAUNCH:%=$(EXAMPLESDIR)/%.o)
 
-launch.o: launch.cxx launch.hh setup.hh
-	$(CXX)  -c $(CXXFLAGS) -I$(KD) $< -o $@
-
 launch: $(LAUNCH_O) $(PSOPT_LIBS) $(DMATRIX_LIBS) $(SPARSE_LIBS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(KAPRI) $(LDFLAGS)
 
