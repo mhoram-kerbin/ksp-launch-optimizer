@@ -224,12 +224,12 @@ void linkages( adouble* linkages, adouble* xad)
 	adouble time_prev, time_next;
 	adouble stat_prev[7], stat_next[7];
 	int i,j;
-	for (i=0;i<STAGES;i++) {
+	for (i=1;i<STAGES;i++) {
 	  // get states
-	  time_prev = get_final_time(xad, i+1);
-	  time_next = get_initial_time(xad, i+2);
-	  get_final_states(stat_prev, xad, i+1);
-	  get_initial_states(stat_next, xad, i+2);
+	  time_prev = get_final_time(xad, i);
+	  time_next = get_initial_time(xad, i+1);
+	  get_final_states(stat_prev, xad, i);
+	  get_initial_states(stat_next, xad, i+1);
 
 	  // time
 	  linkages[index++] = time_prev - time_next;
@@ -238,7 +238,7 @@ void linkages( adouble* linkages, adouble* xad)
 		linkages[index++] = stat_prev[j]-stat_next[j];
 	  }
 	  // mass
-	  adouble mass_difference = StageParameters[i][S_MASS]-StageParameters[i][S_PROPELLANT] - StageParameters[i+1][S_MASS];
+	  adouble mass_difference = StageParameters[i-1][S_MASS]-StageParameters[i-1][S_PROPELLANT] - StageParameters[i][S_MASS];
 	  linkages[index++] = stat_prev[ST_MASS]-mass_difference-stat_next[ST_MASS];
 	}
 
