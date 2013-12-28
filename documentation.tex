@@ -208,9 +208,29 @@ The state of the simulation consists of the following items:
 
 \section{Endpoint Cost}
 
+\chapter{Example}
 
+\section{Vehicle}
 
-\chapter{Index}
-\printindex
+We use as exemplary vehicle the following linear staging rocket:
+
+\begin{itemize}
+\item Command Pod Mk 1 (840kg)
+\item FL-T400 Fuel Tank (2250kg, 2000kg fuel)
+\item LV 909 Liquid Fuel Engine (500kg, 50kN, 300s-390s ISP)
+\item TR-18A Stack Decoupler (50kg)
+\item FL-T800 Fuel Tank (4500kg, 4000kg fuel)
+\item LV-T45 Liquid Fuel Engine (1500kg, 200kN, 320s-370s ISP)
+\end{itemize}
+
+This gives for the two stages:
+
+\begin{itemize}
+\item Propellant Mass: 4000kg, 2000kg
+\item Total Mass: 9640kg, 3590kg
+\item Thrust: 200kN, 50kN
+\item $ISP_0$: 320s, 300s
+\item $ISP_{Vac}$: 370s, 390s
+\end{itemize}
 
 \end{document}

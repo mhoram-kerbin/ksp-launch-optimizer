@@ -21,33 +21,9 @@
 #include <math.h>
 #include "psopt.h"
 
-#include "Vector.hh"
+#include "launch.hh"
+#include "setup.hh"
 
-#define GRAVITATIONAL_CONSTANT (6.674E-11)
-#define G_0 (9.82) // conversion constant for fuelconsumption of engines
-
-#define ST_POSX 0
-#define ST_POSY 1
-#define ST_POSZ 2
-#define ST_VELX 3
-#define ST_VELY 4
-#define ST_VELZ 5
-#define ST_MASS 6
-
-#define SP_PLANET_MASS 0
-#define SP_PLANET_RADIUS 1
-#define SP_PLANET_SCALE_HEIGHT 2
-#define SP_PLANET_P_0 3
-#define SP_PLANET_ROTATION_PERIOD 4
-#define SP_PLANET_SOI 5
-#define SP_ROCKET_DRAG 6
-#define SP_ROCKET_ISP_0 7
-#define SP_ROCKET_ISP_VAC 8
-#define SP_ROCKET_THRUST 9
-
-#define CO_THRX 0
-#define CO_THRY 1
-#define CO_THRZ 2
 
 adouble norm(adouble x, adouble y, adouble z)
 {
@@ -138,5 +114,66 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 int main(void)
 {
 
-  return 0;
+   Alg  algorithm;
+   Sol  solution;
+   Prob problem;
+
+   // Configuration
+
+
+   // Level 1 Setup
+
+   problem.name = "KSP Launch Optimization";
+   problem.outfilename = "launch.txt";
+   problem.nphases = 2;
+   problem.nlinkages = 0; // what does this mean?
+   psopt_level1_setup(problem);
+
+   // Level 2 Setup
+
+    problem.phases(1).nstates   = 7;
+    problem.phases(1).ncontrols = 3;
+    problem.phases(1).nevents   = 0;
+    problem.phases(1).npath     = 0;
+    problem.phases(1).nodes     = "[5, 15]";
+
+    problem.phases(2).nstates   = 7;
+    problem.phases(2).ncontrols = 3;
+    problem.phases(2).nevents   = 0;
+    problem.phases(2).npath     = 0;
+    problem.phases(2).nodes     = "[5, 15]";
+
+	psopt_level2_setup(problem, algorithm);
+
+	// Problem bounds
+
+	problem.bounds.lower.times = "[0,   10.0,   20.0]";
+    problem.bounds.upper.times = "[0, 1000.0, 2000.0]";
+
+	int iphase;
+
+	iphase = 1;
+
+	problem.phases(iphase).bounds.lower.states(1) = 0;
+	problem.phases(iphase).bounds.upper.states(1) = PLANET_SOI;
+	problem.phases(iphase).bounds.lower.states(2) = 0;
+	problem.phases(iphase).bounds.upper.states(2) = PLANET_SOI;
+	problem.phases(iphase).bounds.lower.states(3) = 0;
+	problem.phases(iphase).bounds.upper.states(3) = PLANET_SOI;
+	problem.phases(iphase).bounds.lower.states(4) = 0;
+	problem.phases(iphase).bounds.upper.states(4) = PLANET_MAX_V;
+	problem.phases(iphase).bounds.lower.states(5) = 0;
+	problem.phases(iphase).bounds.upper.states(5) = PLANET_MAX_V;
+	problem.phases(iphase).bounds.lower.states(6) = 0;
+	problem.phases(iphase).bounds.upper.states(6) = PLANET_MAX_V;
+	problem.phases(iphase).bounds.lower.states(7) = 0;
+	problem.phases(iphase).bounds.upper.states(7) = PLANET_MAX_V;
+
+
+
+
+	DMatrix x, u, t, H;
+
+
+   return 0;
 }
