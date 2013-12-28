@@ -57,6 +57,46 @@ adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac)
   return isp_0 * real_p + isp_vac * (1 - real_p);
 }
 
+adouble get_periapsis(adouble* states)
+{
+	adouble p[3]; p[0] = states[ST_POSX]; p[1] = states[ST_POSY]; p[2] = states[ST_POSZ];
+	adouble v[3]; v[0] = states[ST_VELX]; v[1] = states[ST_VELY]; v[2] = states[ST_VELZ];
+	adouble h[3];
+	cross(p, v, h);
+	adouble ev[3];
+	cross(v, h, ev);
+	adouble pos_norm = norm(states[ST_POSX], states[ST_POSY], states[ST_POSZ]);
+	adouble mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+
+	int i;
+	for (i=0;i<3;i++) {
+	  ev[i] = ev[i] / mu - states[ST_POSX + i] / pos_norm;
+	}
+	adouble e_norm = dot(ev, ev, 3);
+
+	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
+
+	return a * (1 - e_norm);
+}
+
+adouble endpoint_cost(adouble* initial_states, adouble* final_states,
+                      adouble* parameters,adouble& t0, adouble& tf,
+                      adouble* xad, int iphase)
+{
+
+    if (iphase == STAGES) {
+	  if (final_states[ST_MASS] == parameters[S_MASS] - parameters[S_PROPELLANT]) {
+		adouble periapsis = get_periapsis(final_states);
+		return TARGET_PERIAPSIS - periapsis;
+	  } else {
+		return -final_states[ST_MASS];
+	  }
+	} else {
+	  return 0.0;
+	}
+
+}
+
 void dae(adouble* derivatives, adouble* path, adouble* states,
 		 adouble* controls, adouble* parameters, adouble& time,
 		 adouble* xad, int iphase)
@@ -174,8 +214,51 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
 
 	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
 
-	e[EF_PERIAPSIS] = a * (1 - e_norm);
+	e[EF_PERIAPSIS] = get_periapsis(final_states);
   }
+}
+void linkages( adouble* linkages, adouble* xad)
+{
+    int index=0;
+
+	adouble time_prev, time_next;
+	adouble stat_prev[7], stat_next[7];
+	int i,j;
+	for (i=0;i<STAGES;i++) {
+	  // get states
+	  time_prev = get_final_time(xad, i+1);
+	  time_next = get_initial_time(xad, i+2);
+	  get_final_states(stat_prev, xad, i+1);
+	  get_initial_states(stat_next, xad, i+2);
+
+	  // time
+	  linkages[index++] = time_prev - time_next;
+	  // position and velocity
+	  for (j=0;j<6;j++) {
+		linkages[index++] = stat_prev[j]-stat_next[j];
+	  }
+	  // mass
+	  adouble mass_difference = StageParameters[i][S_MASS]-StageParameters[i][S_PROPELLANT] - StageParameters[i+1][S_MASS];
+	  linkages[index++] = stat_prev[ST_MASS]-mass_difference-stat_next[ST_MASS];
+	}
+
+	/*
+    double m_tot_first   = 104380.0;
+    double m_prop_first  = 95550.0;
+    double m_dry_first   = m_tot_first-m_prop_first;
+    double m_tot_srb     = 19290.0;
+    double m_prop_srb    = 17010.0;
+    double m_dry_srb     = m_tot_srb-m_prop_srb;
+
+    int index=0;
+
+    auto_link(linkages, &index, xad, 1, 2 );
+    linkages[index-2]-= 6*m_dry_srb;
+    auto_link(linkages, &index, xad, 2, 3 );
+    linkages[index-2]-= 3*m_dry_srb;
+    auto_link(linkages, &index, xad, 3, 4 );
+    linkages[index-2]-= m_dry_first;
+	*/
 }
 
 int main(void)
@@ -192,20 +275,20 @@ int main(void)
    problem.name = "KSP Launch Optimization";
    problem.outfilename = "launch.txt";
    problem.nphases = STAGES;
-   problem.nlinkages = 0; // what does this mean?
+   problem.nlinkages = 8;
    psopt_level1_setup(problem);
 
    // Level 2 Setup
 
    problem.phases(1).nstates   = 7;
    problem.phases(1).ncontrols = 3;
-   problem.phases(1).nevents   = 8;
+   problem.phases(1).nevents   = 6;
    problem.phases(1).npath     = 1;
    problem.phases(1).nodes     = "[5, 15]";
 
    problem.phases(2).nstates   = 7;
    problem.phases(2).ncontrols = 3;
-   problem.phases(2).nevents   = 2;
+   problem.phases(2).nevents   = 3;
    problem.phases(2).npath     = 1;
    problem.phases(2).nodes     = "[5, 15]";
 
@@ -231,7 +314,7 @@ int main(void)
 	 problem.phases(iphase).bounds.upper.states(BI(ST_VELY)) = PLANET_MAX_V;
 	 problem.phases(iphase).bounds.lower.states(BI(ST_VELZ)) = -PLANET_MAX_V;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_VELZ)) = PLANET_MAX_V;
-	 problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase][S_PROPELLANT];
+	 problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase-1][S_PROPELLANT];
 	 problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS];
 
 	 problem.phases(iphase).bounds.lower.controls(BI(C_X)) = 0;
@@ -246,9 +329,10 @@ int main(void)
 
 	 problem.phases(iphase).bounds.lower.events(BI(E_MASS_0)) = StageParameters[iphase-1][S_MASS];
 	 problem.phases(iphase).bounds.upper.events(BI(E_MASS_0)) = StageParameters[iphase-1][S_MASS];
-	 problem.phases(iphase).bounds.lower.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase][S_PROPELLANT];
+	 problem.phases(iphase).bounds.lower.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase-1][S_PROPELLANT];
+
 	 if (iphase < STAGES) { // at the end of the final stage the mass can be larger than total mass - propellant mass
-	   problem.phases(iphase).bounds.upper.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase][S_PROPELLANT];
+	   problem.phases(iphase).bounds.upper.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase-1][S_PROPELLANT];
 	 } else {
 	   problem.phases(iphase).bounds.upper.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS];
 	 }
@@ -264,11 +348,48 @@ int main(void)
    problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XZ)) = 0;
    problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XZ)) = 0;
 
-   problem.phases(2).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS;
-   problem.phases(2).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS;
-
-   DMatrix x, u, t, H;
+   problem.phases(STAGES).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS;
+   problem.phases(STAGES).bounds.upper.events(BI(EF_PERIAPSIS)) = PLANET_SOI;
 
 
-   return 0;
+   //   problem.integrand_cost = &integrand_cost;
+   problem.endpoint_cost = &endpoint_cost;
+   problem.dae = &dae;
+   problem.events = &events;
+   problem.linkages = &linkages;
+
+   algorithm.nlp_method                  	= "IPOPT";
+   algorithm.scaling                     	= "automatic";
+   algorithm.derivatives                 	= "automatic";
+   algorithm.nlp_iter_max                	= 500;
+//    algorithm.mesh_refinement                   = "automatic";
+//    algorithm.collocation_method = "trapezoidal";
+   algorithm.ode_tolerance			= 1.e-2;
+
+   psopt(solution, problem, algorithm);
+
+   DMatrix x, u, t;
+
+   x = (solution.get_states_in_phase(1) || solution.get_states_in_phase(2));
+   u = (solution.get_controls_in_phase(1) || solution.get_controls_in_phase(2));
+   t = (solution.get_time_in_phase(1) || solution.get_time_in_phase(2));
+   x.Save("x.dat");
+   u.Save("u.dat");
+   t.Save("t.dat");
+
+   DMatrix r = x(colon(1,3),colon());
+   DMatrix v = x(colon(4,6),colon());
+   DMatrix altitude = Sqrt(sum(elemProduct(r,r)))/1000.0;
+   DMatrix speed = Sqrt(sum(elemProduct(v,v)));
+
+   plot(t,altitude,problem.name, "time (s)", "position (km)");
+   plot(t,speed,problem.name, "time (s)", "speed (m/s)");
+   plot(t,u,problem.name,"time (s)", "u");
+   plot(t,altitude,problem.name, "time (s)", "position (km)", "alt",
+		"pdf", "launch_position.pdf");
+   plot(t,speed,problem.name, "time (s)", "speed (m/s)", "speed",
+		"pdf", "launch_speed.pdf");
+   plot(t,u,problem.name,"time (s)", "u", "u1 u2 u3",
+		"pdf", "launch_control.pdf");
+
 }

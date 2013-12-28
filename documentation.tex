@@ -94,7 +94,7 @@ $t_f^p$ denotes the final time of stage $p$.
 \section{Functions}
 
 \begin{itemize}
-\item $V(t) := \sqrt{XV(t)^2 + YV(t)^2+ ZV(t)^2}$: Orbital velocity at time $t$
+\item $V(t) := \sqrt{VelX(t)^2 + VelY(t)^2+ VelZ(t)^2}$: Orbital velocity at time $t$
 \item $HorizontalV(t) := TBD$: Horizontal velocity at time $t$
 \item $VerticalV(t) := TBD$: Vertical velocity at time $t$
 \item $Length(x, y, z) := \sqrt{x^2 + y^2 + z^2}$: Length of a vector
@@ -110,9 +110,9 @@ $t_f^p$ denotes the final time of stage $p$.
 \item $PosY(t)$: Y-position at time $t$
 \item $PosZ(t)$: Z-position at time $t$
 
-\item $XV(t)$: X-velocity at time $t$
-\item $YV(t)$: Y-velocity at time $t$
-\item $ZV(t)$: Z-velocity at time $t$
+\item $VelX(t)$: X-velocity at time $t$
+\item $VelY(t)$: Y-velocity at time $t$
+\item $VelZ(t)$: Z-velocity at time $t$
 
 \item $Mass(t)$: Mass of the rocket at time $t$
 \end{itemize}
@@ -159,7 +159,7 @@ $t_f^p$ denotes the final time of stage $p$.
 \item Launch Position and Velocity Vector are 90\textdegree apart \DONE
 \item $Mass(t_0^p) = TotalMass^p$ \DONE
 \item $Mass(t_f^p) = TotalMass^p - PropellantMass^p$ for all but last stage \DONE
-\item $Periapsis(t_f^{last}) \geq TargetOrbit$
+\item $Periapsis(t_f^{last}) \geq TargetOrbit$ \DONE
 \end{itemize}
 
 \section{Phase Linkage Constraints}
@@ -169,16 +169,17 @@ $t_f^p$ denotes the final time of stage $p$.
 \item $PosX(t_0^{p+1}) = PosX(t_f^p)$
 \item $PosY(t_0^{p+1}) = PosY(t_f^p)$
 \item $PosZ(t_0^{p+1}) = PosZ(t_f^p)$
-\item $XV(t_0^{p+1}) = XV(t_f^p)$
-\item $YV(t_0^{p+1}) = YV(t_f^p)$
-\item $ZV(t_0^{p+1}) = ZV(t_f^p)$
+\item $VelX(t_0^{p+1}) = VelX(t_f^p)$
+\item $VelY(t_0^{p+1}) = VelY(t_f^p)$
+\item $VelZ(t_0^{p+1}) = VelZ(t_f^p)$
 \end{itemize}
 
 \section{Performance Index}
 
 \begin{itemize}
-\item $J := - Mass(t_f^{final})$
+\item $J := - Mass(t_f^{final})$ \DONE
 \end{itemize}
+or TargetPeriapsis - FinalPeriapsis, if fuel has run out. \DONE
 
 \chapter{Implementation}
 

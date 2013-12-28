@@ -9,5 +9,8 @@
 *.out
 *.pdf
 *.toc
+mesh_statistics.txt
+mesh_statistics_launch.tex
+psopt_solution_launch.txt
 *~
 launch
