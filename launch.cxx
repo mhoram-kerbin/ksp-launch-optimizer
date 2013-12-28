@@ -24,6 +24,8 @@
 #include "launch.hh"
 #include "setup.hh"
 
+static const double StageParameters[STAGES][5] = STAGE_PARAM;
+static double LaunchParameters[6];
 
 adouble norm(adouble x, adouble y, adouble z)
 {
@@ -108,7 +110,18 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble isp = get_isp(pressure, parameters[SP_ROCKET_ISP_0],
 						parameters[SP_ROCKET_ISP_VAC]);
 
-  derivatives[ST_MASS] = norm(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]) / (isp * G_0);
+  adouble thrust_norm = norm(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
+
+  derivatives[ST_MASS] = thrust_norm / (isp * G_0);
+
+  // path restriction on thrust
+  path[P_THRUST] = thrust_norm;
+
+}
+
+void init_launch_parameters()
+{
+
 }
 
 int main(void)
@@ -118,61 +131,68 @@ int main(void)
    Sol  solution;
    Prob problem;
 
-   // Configuration
-
+   init_launch_parameters();
 
    // Level 1 Setup
 
    problem.name = "KSP Launch Optimization";
    problem.outfilename = "launch.txt";
-   problem.nphases = 2;
+   problem.nphases = STAGES;
    problem.nlinkages = 0; // what does this mean?
    psopt_level1_setup(problem);
 
    // Level 2 Setup
 
-    problem.phases(1).nstates   = 7;
-    problem.phases(1).ncontrols = 3;
-    problem.phases(1).nevents   = 0;
-    problem.phases(1).npath     = 0;
-    problem.phases(1).nodes     = "[5, 15]";
+   problem.phases(1).nstates   = 7;
+   problem.phases(1).ncontrols = 3;
+   problem.phases(1).nevents   = 0;
+   problem.phases(1).npath     = 1;
+   problem.phases(1).nodes     = "[5, 15]";
 
-    problem.phases(2).nstates   = 7;
-    problem.phases(2).ncontrols = 3;
-    problem.phases(2).nevents   = 0;
-    problem.phases(2).npath     = 0;
-    problem.phases(2).nodes     = "[5, 15]";
+   problem.phases(2).nstates   = 7;
+   problem.phases(2).ncontrols = 3;
+   problem.phases(2).nevents   = 1;
+   problem.phases(2).npath     = 1;
+   problem.phases(2).nodes     = "[5, 15]";
 
-	psopt_level2_setup(problem, algorithm);
+   psopt_level2_setup(problem, algorithm);
 
-	// Problem bounds
+   // Problem bounds
 
-	problem.bounds.lower.times = "[0,   10.0,   20.0]";
-    problem.bounds.upper.times = "[0, 1000.0, 2000.0]";
+   problem.bounds.lower.times = "[0,   60.0,   178.0]";
+   problem.bounds.upper.times = "[0, 1000.0, 2000.0]";
 
-	int iphase;
+   int iphase;
 
-	iphase = 1;
+   for(iphase = 1;iphase <= STAGES;iphase++) {
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSX)) = 0;
+	 problem.phases(iphase).bounds.upper.states(BI(ST_POSX)) = PLANET_SOI;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSY)) = 0;
+	 problem.phases(iphase).bounds.upper.states(BI(ST_POSY)) = PLANET_SOI;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSZ)) = 0;
+	 problem.phases(iphase).bounds.upper.states(BI(ST_POSZ)) = PLANET_SOI;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_VELX)) = -PLANET_MAX_V;
+	 problem.phases(iphase).bounds.upper.states(BI(ST_VELX)) = PLANET_MAX_V;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_VELY)) = -PLANET_MAX_V;
+	 problem.phases(iphase).bounds.upper.states(BI(ST_VELY)) = PLANET_MAX_V;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_VELZ)) = -PLANET_MAX_V;
+	 problem.phases(iphase).bounds.upper.states(BI(ST_VELZ)) = PLANET_MAX_V;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase][S_PROPELLANT];
+	 problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS];
 
-	problem.phases(iphase).bounds.lower.states(1) = 0;
-	problem.phases(iphase).bounds.upper.states(1) = PLANET_SOI;
-	problem.phases(iphase).bounds.lower.states(2) = 0;
-	problem.phases(iphase).bounds.upper.states(2) = PLANET_SOI;
-	problem.phases(iphase).bounds.lower.states(3) = 0;
-	problem.phases(iphase).bounds.upper.states(3) = PLANET_SOI;
-	problem.phases(iphase).bounds.lower.states(4) = 0;
-	problem.phases(iphase).bounds.upper.states(4) = PLANET_MAX_V;
-	problem.phases(iphase).bounds.lower.states(5) = 0;
-	problem.phases(iphase).bounds.upper.states(5) = PLANET_MAX_V;
-	problem.phases(iphase).bounds.lower.states(6) = 0;
-	problem.phases(iphase).bounds.upper.states(6) = PLANET_MAX_V;
-	problem.phases(iphase).bounds.lower.states(7) = 0;
-	problem.phases(iphase).bounds.upper.states(7) = PLANET_MAX_V;
+	 problem.phases(iphase).bounds.lower.controls(BI(C_X)) = 0;
+	 problem.phases(iphase).bounds.upper.controls(BI(C_X)) = StageParameters[iphase-1][S_THRUST];
+	 problem.phases(iphase).bounds.lower.controls(BI(C_Y)) = 0;
+	 problem.phases(iphase).bounds.upper.controls(BI(C_Y)) = StageParameters[iphase-1][S_THRUST];
+	 problem.phases(iphase).bounds.lower.controls(BI(C_Z)) = 0;
+	 problem.phases(iphase).bounds.upper.controls(BI(C_Z)) = StageParameters[iphase-1][S_THRUST];
 
+	 problem.phases(iphase).bounds.lower.path(BI(P_THRUST)) = 0;
+	 problem.phases(iphase).bounds.upper.path(BI(P_THRUST)) = StageParameters[iphase-1][S_THRUST];
 
+   }
 
-
-	DMatrix x, u, t, H;
+   DMatrix x, u, t, H;
 
 
    return 0;

@@ -1,5 +1,7 @@
 #pragma once
 
+#define BI(i) ((1 + i))
+
 #define ST_POSX 0
 #define ST_POSY 1
 #define ST_POSZ 2
@@ -22,6 +24,25 @@
 #define CO_THRX 0
 #define CO_THRY 1
 #define CO_THRZ 2
+
+#define S_PROPELLANT 0
+#define S_MASS 1
+#define S_THRUST 2
+#define S_ISP_0 3
+#define S_ISP_VAC 4
+
+#define C_X 0
+#define C_Y 1
+#define C_Z 2
+
+#define P_THRUST 0
+
+#define L_PosX 0
+#define L_PosY 1
+#define L_PosZ 2
+#define L_VelX 3
+#define L_VelY 4
+#define L_VelZ 5
 
 // as global as constants can get
 

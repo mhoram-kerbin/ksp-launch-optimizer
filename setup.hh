@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #define PLANET_MASS (5.2915793E22)
 #define PLANET_RADIUS (600000)
 #define PLANET_SCALE_HEIGHT (5000)
@@ -7,12 +9,10 @@
 #define PLANET_ROT_PER (21600)
 #define PLANET_SOI (84159286)
 #define PLANET_MAX_V (10000)
+#define LAUNCH_LATITUDE (-(0 + 5/60 + 49/3600)/180 * M_PI)
+#define LAUNCH_LONGITUDE (-(74 + 33/60 + 27/3600)/180 * M_PI)
+#define LAUNCH_ELEVATION (77.1)
 
-#define STAGES (2);
+#define STAGES (2)
 
-#define STAGE_MASS_PROPELLANT ([4000, 2000]);
-#define STAGE_MASS_TOTAL ([9640, 3590]);
-#define STAGE_THRUST ([50, 200]);
-#define STAGE_ISP_0 ([320, 300]);
-#define STAGE_ISP_VAC ([370, 390]);
-
+#define STAGE_PARAM {{4000, 9640, 200.0, 320, 370}, {2000, 3590,  50.0, 300, 390}}
