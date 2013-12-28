@@ -28,7 +28,6 @@ frame=single           % adds a frame around the code
 \begin{document}
 
 \title{Kerbal Launch Optimizer}
-\author {Mhoram Kerbin \href{mailto:mhoram.kerbin@gmx.de}{\nolinkurl{mhoram.kerbin@gmx.de}}}
 
 \maketitle
 
@@ -61,14 +60,18 @@ $t_f^p$ denotes the final time of stage $p$.
 \subsection{Global}
 
 \begin{itemize}
-\item $PlanetRadius$: Radius of planet
-\item $SoiRadius$: Radius of sphere of influence
 \item $g_0$: Gravity at sealevel
 \end{itemize}
 
 \subsection{Local for initialization}
 
 \begin{itemize}
+\item $PlanetMass$: Mass of planet
+\item $PlanetRadius$: Radius of planet
+\item $PlanetScaleHeight$: Planets Scale Height
+\item $P_0$: Pressure at sealevel
+\item $SidPer$: Rotation Period
+\item $SoiRadius$: Radius of sphere of influence
 \item $Longitude$: Longitude of launchsite
 \item $Latitude$: Latitude of launchsite
 \item $Elevation$: Elevation of launchsite
@@ -134,8 +137,8 @@ $t_f^p$ denotes the final time of stage $p$.
 
 \begin{itemize}
 \item $\dot{\overrightarrow{Position}} = \overrightarrow{Velocity}$ \DONE
-\item $\dot{\overrightarrow{Velocity}} = Mass^{-1}\cdot\left(\overrightarrow{Thrust} + \overrightarrow{Drag} + \overrightarrow{Gravity}\right)$
-\item $\dot{Mass} = (ISP(Altitude) \cdot g_0)^{-1}\cdot\left|\overrightarrow{Thrust}\right|$
+\item $\dot{\overrightarrow{Velocity}} = Mass^{-1}\cdot\left(\overrightarrow{Thrust} + \overrightarrow{Drag} + \overrightarrow{Gravity}\right)$ \DONE
+\item $\dot{Mass} = (ISP(Altitude) \cdot g_0)^{-1}\cdot\left|\overrightarrow{Thrust}\right|$ \DONE
 \end{itemize}
 \section{Events}
 

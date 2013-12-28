@@ -18,11 +18,13 @@
   <http://www.gnu.org/licenses/>.
 */
 
+#include <math.h>
 #include "psopt.h"
 
 #include "Vector.hh"
 
 #define GRAVITATIONAL_CONSTANT (6.674E-11)
+#define G_0 (9.82) // conversion constant for fuelconsumption of engines
 
 #define ST_POSX 0
 #define ST_POSY 1
@@ -39,6 +41,9 @@
 #define SP_PLANET_ROTATION_PERIOD 4
 #define SP_PLANET_SOI 5
 #define SP_ROCKET_DRAG 6
+#define SP_ROCKET_ISP_0 7
+#define SP_ROCKET_ISP_VAC 8
+#define SP_ROCKET_THRUST 9
 
 #define CO_THRX 0
 #define CO_THRY 1
@@ -49,7 +54,7 @@ adouble norm(adouble x, adouble y, adouble z)
   return sqrt(x*x + y*y + z*z);
 }
 
-adouble pressure(adouble altitude, adouble p_0, adouble psh)
+adouble calc_pressure(adouble altitude, adouble p_0, adouble psh)
 {
   return p_0 * exp(-altitude / psh);
 }
@@ -66,6 +71,15 @@ adouble ground_velocity(adouble px, adouble py, adouble pz, adouble vx, adouble 
   return norm(gvx, gvy, vz);
 }
 
+adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac)
+{
+  adouble real_p = pressure;
+  if (real_p > 1) {
+	real_p = 1;
+  }
+  return isp_0 * real_p + isp_vac * (1 - real_p);
+}
+
 void dae(adouble* derivatives, adouble* path, adouble* states,
 		 adouble* controls, adouble* parameters, adouble& time,
 		 adouble* xad, int iphase)
@@ -80,8 +94,8 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   // calculate drag
   adouble pos_norm = norm(states[ST_POSX], states[ST_POSY], states[ST_POSZ]);
   adouble altitude = pos_norm - parameters[SP_PLANET_RADIUS];
-  adouble pressure = pressure(altitude, parameters[SP_PLANET_P_0],
-							  parameters[SP_PLANET_SCALE_HEIGHT]);
+  adouble pressure = calc_pressure(altitude, parameters[SP_PLANET_P_0],
+	parameters[SP_PLANET_SCALE_HEIGHT]);
 
   adouble groundvelocity = ground_velocity
 	(states[ST_POSX], states[ST_POSY], states[ST_POSZ],
@@ -96,7 +110,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
   // calculate gravity
 
-  adouble grav_mod = - GRAVITATIONAL_CONSTANT * states[ST_MASS] * paremeters[SP_PLANET_MASS] / pos_norm ** 3;
+  adouble grav_mod = - GRAVITATIONAL_CONSTANT * states[ST_MASS] * parameters[SP_PLANET_MASS] / pow(pos_norm, 3);
 
   adouble Gx = states[ST_POSX] * grav_mod;
   adouble Gy = states[ST_POSY] * grav_mod;
@@ -115,7 +129,10 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
   // calculate mass change
 
-  derivatives[ST_MASS] = 0;
+  adouble isp = get_isp(pressure, parameters[SP_ROCKET_ISP_0],
+						parameters[SP_ROCKET_ISP_VAC]);
+
+  derivatives[ST_MASS] = norm(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]) / (isp * G_0);
 }
 
 int main(void)
