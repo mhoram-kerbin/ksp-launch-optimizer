@@ -1,0 +1,13 @@
+*.aux
+*.dvi
+*.fdb_latexmk
+*.idx
+*.ilg
+*.ind
+*.log
+*.o
+*.out
+*.pdf
+*.toc
+*~
+launch

@@ -1,0 +1,213 @@
+\documentclass[11pt]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper]{geometry}
+\usepackage[pdfstartview=Fit,pdfpagelayout=SinglePage,breaklinks=true]{hyperref}
+\usepackage{breakurl}
+\usepackage{multicol}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[final]{listings}
+\usepackage{makeidx}
+\makeindex
+
+\lstset{ %
+language=sh,                % choose the language of the code
+%numbers=left,                   % where to put the line-numbers
+firstnumber=auto, % automatic line numbers
+columns=fullflexible,
+frame=single           % adds a frame around the code
+}
+
+\newcommand{\F}[1]{\overrightarrow{F_{#1}}}
+\newcommand{\Pos}{\overrightarrow{P}}
+\newcommand{\Vel}{\overrightarrow{V}}
+\newcommand{\absvec}[1]{\left|\left|{#1}\right|\right|}
+
+\newcommand{\DONE}{{DONE}}
+\begin{document}
+
+\title{Kerbal Launch Optimizer}
+\author {Mhoram Kerbin \href{mailto:mhoram.kerbin@gmx.de}{\nolinkurl{mhoram.kerbin@gmx.de}}}
+
+\maketitle
+
+\begin{abstract}
+
+  This software is intended to find ideal ascent trajectories for
+  rockets in Kerbal Space Programm.
+
+  Description of the optimization problem for an ideal rocket launch
+  to a stable orbit in the Kerbal Space Program.
+
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Description of the setting}
+
+\section{Restrictions}
+
+In this model we assume that within a single stage all engines are
+running the whole time.
+
+\section{Declaration of names}
+
+$t_0^p$ denotes the initial time of stage $p$.
+$t_f^p$ denotes the final time of stage $p$.
+
+\section{Constants}
+
+\subsection{Global}
+
+\begin{itemize}
+\item $PlanetRadius$: Radius of planet
+\item $SoiRadius$: Radius of sphere of influence
+\item $g_0$: Gravity at sealevel
+\end{itemize}
+
+\subsection{Local for initialization}
+
+\begin{itemize}
+\item $Longitude$: Longitude of launchsite
+\item $Latitude$: Latitude of launchsite
+\item $Elevation$: Elevation of launchsite
+\item $TargetOrbit$: Target Periapsis for orbit
+\end{itemize}
+
+\subsection{Local for each phase}
+
+\begin{itemize}
+\item $MaxThrust^p$: Maximal thrust
+\item $ISP_{1Atm}^p$: ISP at $1 atm$
+\item $ISP_{Vac}^p$: ISP in Vacuum
+\item $PropellantMass^p$ Propellant mass
+\item $TotalMass^p$ Mass at beginning of stage
+\end{itemize}
+
+\section{Functions}
+
+\begin{itemize}
+\item $V(t) := \sqrt{XV(t)^2 + YV(t)^2+ ZV(t)^2}$: Orbital velocity at time $t$
+\item $HorizontalV(t) := TBD$: Horizontal velocity at time $t$
+\item $VerticalV(t) := TBD$: Vertical velocity at time $t$
+\item $Length(x, y, z) := \sqrt{x^2 + y^2 + z^2}$: Length of a vector
+\item $Versor(x, y, z) := \frac{(x, y, z)}{Length(x, y, z)}$ Versor
+\item $R(t) := Length(PosX(t), PosY(t), PosZ(t))$: Distance of rocket to planet center at time $t$
+\item $Periapsis(t) := \textrm{Periapsis of the orbit at time } t$
+\end{itemize}
+
+\section{States}
+
+\begin{itemize}
+\item $PosX(t)$: X-position at time $t$
+\item $PosY(t)$: Y-position at time $t$
+\item $PosZ(t)$: Z-position at time $t$
+
+\item $XV(t)$: X-velocity at time $t$
+\item $YV(t)$: Y-velocity at time $t$
+\item $ZV(t)$: Z-velocity at time $t$
+
+\item $Mass(t)$: Mass of the rocket at time $t$
+\end{itemize}
+
+\section{Control}
+
+\begin{itemize}
+\item $ThrustX(t)$: X-thrustforce at time $t$
+\item $ThrustY(t)$: Y-thrustforce at time $t$
+\item $ThrustZ(t)$: Z-thrustforce at time $t$
+\end{itemize}
+
+\section{Path Constraints}
+
+\subsection{Bound Constraints}
+
+\begin{itemize}
+\item $R(t) \geq PlanetRadius$
+\item $R(t) \leq SoiRadius$
+\item $Length(ThrustX(t), ThrustY(t), ThrustZ(t)) \leq MaxThrust^p$
+\item In all but the final phase the velocity vector points away from the planet core?
+\end{itemize}
+
+\section{Derivative Constraints}
+
+\begin{itemize}
+\item $\dot{\overrightarrow{Position}} = \overrightarrow{Velocity}$ \DONE
+\item $\dot{\overrightarrow{Velocity}} = Mass^{-1}\cdot\left(\overrightarrow{Thrust} + \overrightarrow{Drag} + \overrightarrow{Gravity}\right)$
+\item $\dot{Mass} = (ISP(Altitude) \cdot g_0)^{-1}\cdot\left|\overrightarrow{Thrust}\right|$
+\end{itemize}
+\section{Events}
+
+\begin{itemize}
+\item $ThrustX(0) \cdot PosY(0) = ThrustY(0) \cdot PosX(0)$
+\item $ThrustX(0) \cdot PosZ(0) = ThrustZ(0) \cdot PosX(0)$
+\item $PosY(0) = 0$
+\item $XV(0) = 0$
+\item $YV(0) = \textrm{Earth rotation velocity at Longitude and Elevation of Launchsite}$
+\item $ZV(0) = 0$
+\item $Mass(t_0^p) = TotalMass^p$
+\item $Mass(t_f^p) = TotalMass^p - PropellantMass^p$
+\item $\left|PosX(t_f^p), PosY(t_f^p), PosZ(t_f^p)\right| = PlanetRadius + Altitude of Atmosphere End$
+\item $Periapsis(t_f^{last}) \geq TargetOrbit$
+\end{itemize}
+
+\section{Phase Linkage Constraints}
+
+\begin{itemize}
+\item $t_0^{p+1} = t_f^p$
+\item $PosX(t_0^{p+1}) = PosX(t_f^p)$
+\item $PosY(t_0^{p+1}) = PosY(t_f^p)$
+\item $PosZ(t_0^{p+1}) = PosZ(t_f^p)$
+\item $XV(t_0^{p+1}) = XV(t_f^p)$
+\item $YV(t_0^{p+1}) = YV(t_f^p)$
+\item $ZV(t_0^{p+1}) = ZV(t_f^p)$
+\item $ThrustX(t_0^{p+1}) = ThrustX(t_f^p)$
+\item $ThrustY(t_0^{p+1}) = ThrustY(t_f^p)$
+\item $ThrustZ(t_0^{p+1}) = ThrustZ(t_f^p)$
+\end{itemize}
+
+\section{Performance Index}
+
+\begin{itemize}
+\item $J := - Mass(t_f^{final})$
+\end{itemize}
+
+\chapter{Implementation}
+
+\section{States}
+
+The state of the simulation consists of the following items:
+
+\begin{enumerate}
+\setcounter{enumi}{-1}
+\item PosX
+\item PosY
+\item PosZ
+\item VelX
+\item VelY
+\item VelZ
+\item Mass
+\end{enumerate}
+
+\section{Static Parameters}
+
+\begin{enumerate}
+\setcounter{enumi}{-1}
+\item Planet mass
+\item Planet radius
+\item Planet scale height
+\item Planet pressure at sealevel
+\item Planet rotation period around it's own axe
+\item Planet's SOI radius
+\item Rocket's drag coefficient
+\end{enumerate}
+
+\section{Endpoint Cost}
+
+
+
+\chapter{Index}
+\printindex
+
+\end{document}
