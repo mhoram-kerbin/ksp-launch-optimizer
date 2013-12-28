@@ -153,15 +153,12 @@ $t_f^p$ denotes the final time of stage $p$.
 \section{Events}
 
 \begin{itemize}
-\item $ThrustX(0) \cdot PosY(0) = ThrustY(0) \cdot PosX(0)$
-\item $ThrustX(0) \cdot PosZ(0) = ThrustZ(0) \cdot PosX(0)$
-\item $PosY(0) = 0$
-\item $XV(0) = 0$
-\item $YV(0) = \textrm{Earth rotation velocity at Longitude and Elevation of Launchsite}$
-\item $ZV(0) = 0$
-\item $Mass(t_0^p) = TotalMass^p$
-\item $Mass(t_f^p) = TotalMass^p - PropellantMass^p$
-\item $\left|PosX(t_f^p), PosY(t_f^p), PosZ(t_f^p)\right| = PlanetRadius + Altitude of Atmosphere End$
+\item $ThrustX(0) \cdot PosY(0) = ThrustY(0) \cdot PosX(0)$ \DONE
+\item $ThrustX(0) \cdot PosZ(0) = ThrustZ(0) \cdot PosX(0)$ \DONE
+\item $ZV(0) = 0$ \DONE
+\item Launch Position and Velocity Vector are 90\textdegree apart \DONE
+\item $Mass(t_0^p) = TotalMass^p$ \DONE
+\item $Mass(t_f^p) = TotalMass^p - PropellantMass^p$ for all but last stage \DONE
 \item $Periapsis(t_f^{last}) \geq TargetOrbit$
 \end{itemize}
 
@@ -175,9 +172,6 @@ $t_f^p$ denotes the final time of stage $p$.
 \item $XV(t_0^{p+1}) = XV(t_f^p)$
 \item $YV(t_0^{p+1}) = YV(t_f^p)$
 \item $ZV(t_0^{p+1}) = ZV(t_f^p)$
-\item $ThrustX(t_0^{p+1}) = ThrustX(t_f^p)$
-\item $ThrustY(t_0^{p+1}) = ThrustY(t_f^p)$
-\item $ThrustZ(t_0^{p+1}) = ThrustZ(t_f^p)$
 \end{itemize}
 
 \section{Performance Index}

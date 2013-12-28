@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #define BI(i) ((1 + i))
 
 #define ST_POSX 0
@@ -37,14 +39,23 @@
 
 #define P_THRUST 0
 
-#define L_PosX 0
-#define L_PosY 1
-#define L_PosZ 2
-#define L_VelX 3
-#define L_VelY 4
-#define L_VelZ 5
+#define L_POSX 0
+#define L_POSY 1
+#define L_POSZ 2
+#define L_VELX 3
+#define L_VELY 4
+#define L_VELZ 5
 
+#define E_MASS_0 0
+#define E_MASS_F 1
+#define E1_L_VELZ 2
+#define E1_L_PVS 3
+#define E1_L_THRUST_XY 4
+#define E1_L_THRUST_XZ 5
+#define EF_PERIAPSIS 2
 // as global as constants can get
 
 #define GRAVITATIONAL_CONSTANT (6.674E-11)
-#define G_0 (9.82) // conversion constant for fuelconsumption of engines
+
+// conversion constant for fuelconsumption of engines
+#define G_0 (9.82)

@@ -18,7 +18,6 @@
   <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
 #include "psopt.h"
 
 #include "launch.hh"
@@ -121,7 +120,62 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
 void init_launch_parameters()
 {
+  double dist = PLANET_RADIUS + LAUNCH_ELEVATION;
 
+  double f = dist * 2 * M_PI * cos(LAUNCH_LATITUDE) / PLANET_ROT_PER;
+  LaunchParameters[L_POSX] = dist * cos(LAUNCH_LATITUDE) * cos(LAUNCH_LONGITUDE);
+  LaunchParameters[L_POSY] = dist * cos(LAUNCH_LATITUDE) * sin(LAUNCH_LONGITUDE);
+  LaunchParameters[L_POSZ] = dist * sin(LAUNCH_LATITUDE);
+  LaunchParameters[L_VELX] = -sin(LAUNCH_LONGITUDE) * f;
+  LaunchParameters[L_VELY] =  cos(LAUNCH_LONGITUDE) * f;
+  LaunchParameters[L_VELZ] = 0;
+
+}
+
+void events(adouble* e, adouble* initial_states, adouble* final_states,
+            adouble* parameters,adouble& t0, adouble& tf, adouble* xad,
+            int iphase)
+{
+  // Mass
+  e[E_MASS_0] = initial_states[ST_MASS];
+  e[E_MASS_F] = final_states[ST_MASS];
+
+  // Launch Parameters
+
+  if (iphase == 1) {
+	e[E1_L_VELZ] = initial_states[ST_VELZ];
+	e[E1_L_PVS] = LaunchParameters[L_POSX] * LaunchParameters[L_VELX] +
+	  LaunchParameters[L_POSY] * LaunchParameters[L_VELY] +
+	  LaunchParameters[L_POSZ] * LaunchParameters[L_VELZ];
+
+	adouble controls[3];
+	get_initial_controls(controls, xad, 1);
+	e[E1_L_THRUST_XY] = controls[C_X] * initial_states[ST_POSY] - controls[C_Y] * initial_states[ST_POSX];
+	e[E1_L_THRUST_XZ] = controls[C_X] * initial_states[ST_POSZ] - controls[C_Z] * initial_states[ST_POSX];
+  }
+
+  if (iphase == STAGES) {
+
+	// calculate periapsis
+	adouble p[3]; p[0] = final_states[ST_POSX]; p[1] = final_states[ST_POSY]; p[2] = final_states[ST_POSZ];
+	adouble v[3]; v[0] = final_states[ST_VELX]; v[1] = final_states[ST_VELY]; v[2] = final_states[ST_VELZ];
+	adouble h[3];
+	cross(p, v, h);
+	adouble ev[3];
+	cross(v, h, ev);
+	adouble pos_norm = norm(final_states[ST_POSX], final_states[ST_POSY], final_states[ST_POSZ]);
+	adouble mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+
+	int i;
+	for (i=0;i<3;i++) {
+	  ev[i] = ev[i] / mu - final_states[ST_POSX + i] / pos_norm;
+	}
+	adouble e_norm = dot(ev, ev, 3);
+
+	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
+
+	e[EF_PERIAPSIS] = a * (1 - e_norm);
+  }
 }
 
 int main(void)
@@ -145,13 +199,13 @@ int main(void)
 
    problem.phases(1).nstates   = 7;
    problem.phases(1).ncontrols = 3;
-   problem.phases(1).nevents   = 0;
+   problem.phases(1).nevents   = 8;
    problem.phases(1).npath     = 1;
    problem.phases(1).nodes     = "[5, 15]";
 
    problem.phases(2).nstates   = 7;
    problem.phases(2).ncontrols = 3;
-   problem.phases(2).nevents   = 1;
+   problem.phases(2).nevents   = 2;
    problem.phases(2).npath     = 1;
    problem.phases(2).nodes     = "[5, 15]";
 
@@ -190,7 +244,28 @@ int main(void)
 	 problem.phases(iphase).bounds.lower.path(BI(P_THRUST)) = 0;
 	 problem.phases(iphase).bounds.upper.path(BI(P_THRUST)) = StageParameters[iphase-1][S_THRUST];
 
+	 problem.phases(iphase).bounds.lower.events(BI(E_MASS_0)) = StageParameters[iphase-1][S_MASS];
+	 problem.phases(iphase).bounds.upper.events(BI(E_MASS_0)) = StageParameters[iphase-1][S_MASS];
+	 problem.phases(iphase).bounds.lower.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase][S_PROPELLANT];
+	 if (iphase < STAGES) { // at the end of the final stage the mass can be larger than total mass - propellant mass
+	   problem.phases(iphase).bounds.upper.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase][S_PROPELLANT];
+	 } else {
+	   problem.phases(iphase).bounds.upper.events(BI(E_MASS_F)) = StageParameters[iphase-1][S_MASS];
+	 }
+
    }
+
+   problem.phases(1).bounds.lower.events(BI(E1_L_VELZ)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_VELZ)) = 0;
+   problem.phases(1).bounds.lower.events(BI(E1_L_PVS)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_PVS)) = 0;
+   problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XY)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XY)) = 0;
+   problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XZ)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XZ)) = 0;
+
+   problem.phases(2).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS;
+   problem.phases(2).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS;
 
    DMatrix x, u, t, H;
 

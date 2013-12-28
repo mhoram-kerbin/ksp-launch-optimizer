@@ -12,6 +12,7 @@
 #define LAUNCH_LATITUDE (-(0 + 5/60 + 49/3600)/180 * M_PI)
 #define LAUNCH_LONGITUDE (-(74 + 33/60 + 27/3600)/180 * M_PI)
 #define LAUNCH_ELEVATION (77.1)
+#define TARGET_PERIAPSIS (75000)
 
 #define STAGES (2)
 
