@@ -155,23 +155,23 @@ $t_f^p$ denotes the final time of stage $p$.
 \begin{itemize}
 \item $ThrustX(0) \cdot PosY(0) = ThrustY(0) \cdot PosX(0)$ \DONE
 \item $ThrustX(0) \cdot PosZ(0) = ThrustZ(0) \cdot PosX(0)$ \DONE
-\item $ZV(0) = 0$ \DONE
+\item Launch position and velocity are at launchpad \DONE
 \item Launch Position and Velocity Vector are 90\textdegree apart \DONE
-\item $Mass(t_0^p) = TotalMass^p$ \DONE
-\item $Mass(t_f^p) = TotalMass^p - PropellantMass^p$ for all but last stage \DONE
+\item Launch Mass is Total Mass of ship \DONE
 \item $Periapsis(t_f^{last}) \geq TargetOrbit$ \DONE
 \end{itemize}
 
 \section{Phase Linkage Constraints}
 
 \begin{itemize}
-\item $t_0^{p+1} = t_f^p$
-\item $PosX(t_0^{p+1}) = PosX(t_f^p)$
-\item $PosY(t_0^{p+1}) = PosY(t_f^p)$
-\item $PosZ(t_0^{p+1}) = PosZ(t_f^p)$
-\item $VelX(t_0^{p+1}) = VelX(t_f^p)$
-\item $VelY(t_0^{p+1}) = VelY(t_f^p)$
-\item $VelZ(t_0^{p+1}) = VelZ(t_f^p)$
+\item $t_0^{p+1} = t_f^p$ \DONE
+\item $PosX(t_0^{p+1}) = PosX(t_f^p)$ \DONE
+\item $PosY(t_0^{p+1}) = PosY(t_f^p)$ \DONE
+\item $PosZ(t_0^{p+1}) = PosZ(t_f^p)$ \DONE
+\item $VelX(t_0^{p+1}) = VelX(t_f^p)$ \DONE
+\item $VelY(t_0^{p+1}) = VelY(t_f^p)$ \DONE
+\item $VelZ(t_0^{p+1}) = VelZ(t_f^p)$ \DONE
+\item $Mass(t_f^p) - (TotalMass^p - PropellantMass^p) + TotalMass^{p+1} = Mass(t_0^{p+1})$ \DONE
 \end{itemize}
 
 \section{Performance Index}
@@ -236,6 +236,7 @@ This gives for the two stages:
 \item Thrust: 200kN, 50kN
 \item $ISP_0$: 320s, 300s
 \item $ISP_{Vac}$: 370s, 390s
+\item Drag Coefficient 0.2, 0.2
 \end{itemize}
 
 Rocket will Launch from 0\textdegree5'49'' South, 74\textdegree33'27'' West at an elevation of 77.1m.
