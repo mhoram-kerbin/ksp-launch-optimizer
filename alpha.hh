@@ -20,6 +20,8 @@
 
 #pragma once
 
+#define BI(x) ((x)+1)
+
 #define SP_PROPELLANT 0
 #define SP_MASS 1
 #define SP_THRUST 2
@@ -37,22 +39,36 @@
 #define LP_VELZ 5
 #define LP_NUMBER 6
 
-#define ST_POSX 0
-#define ST_POSY 1
-#define ST_POSZ 2
-#define ST_NUMBER 3
+#define ST_POSX   0
+#define ST_POSY   1
+#define ST_POSZ   2
+#define ST_VELX   3
+#define ST_VELY   4
+#define ST_VELZ   5
+#define ST_NUMBER 6
 
 #define PA_NUMBER 0
 
-#define CO_THRX 0
-#define CO_NUMBER 1
+#define CO_THRX   0
+#define CO_THRY   1
+#define CO_THRZ   2
+#define CO_NUMBER 3
 
-#define EN_NUMBER 0
-#define E1_NUMBER 0
-#define EF_NUMBER 0
+#define EN_NUMBER (0)
+
+#define E1_POSX   (0 + EN_NUMBER)
+#define E1_POSY   (1 + EN_NUMBER)
+#define E1_POSZ   (2 + EN_NUMBER)
+#define E1_VELX   (3 + EN_NUMBER)
+#define E1_VELY   (4 + EN_NUMBER)
+#define E1_VELZ   (5 + EN_NUMBER)
+#define E1_NUMBER (6 + EN_NUMBER)
+
+#define EF_NUMBER (0 + EN_NUMBER)
 
 void init_launch_parameters();
-void level_1_setup(Prob problem);
-void level_2_setup(Prob problem);
-void setup_phase_level_information(Prob problem);
-void setup_phase_bounds_information(Prob problem);
+void setup_state_constraints(Prob problem, int iphase);
+void setup_control_constraints(Prob problem, int iphase);
+void setup_event_constraints(Prob problem, int iphase);
+void setup_time_constraints(Prob problem);
+void setup_linkage_constraints(Prob problem);
