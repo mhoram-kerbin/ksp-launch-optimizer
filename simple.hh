@@ -22,6 +22,7 @@
 
 #include <math.h>
 #include <string>
+#include <assert.h>
 
 #define BI(i) ((1 + i))
 

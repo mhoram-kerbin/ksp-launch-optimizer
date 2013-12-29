@@ -51,6 +51,7 @@ adouble endpoint_cost(adouble* initial_states, adouble* final_states,
 {
 
     if (iphase == STAGES) {
+	  return tf;
 	  return -final_states[ST_MASS];
 	} else {
 	  return 0.0;
@@ -75,9 +76,9 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   derivatives[ST_MASS] = -thrust_norm / (isp * G_0) * 1000;
 
   //cout << "time " << time << "(" << iphase << ")" << " thrust " << thrust_norm << " dMass " << derivatives[ST_MASS] << " isp " << isp << endl;
-
+  adouble time_start = get_initial_time(xad, iphase);
   // path restriction on thrust
-  path[PA_THRUST] = thrust_norm;
+  path[PA_THRUST] = thrust_norm;// * (1 + 1 / (1 + (time - time_start)/5) * sin(time/5));
 
 }
 
@@ -135,28 +136,39 @@ int main(void)
    problem.name = "KSP Launch Optimization";
    problem.outfilename = "launch.txt";
    problem.nphases = STAGES;
-   problem.nlinkages = 2;//8;
+   problem.nlinkages = (STAGES - 1) * (ST_NUMBER + 1);
    psopt_level1_setup(problem);
 
    // Level 2 Setup
+
+   assert(STAGES > 1);
 
    problem.phases(1).nstates   = ST_NUMBER;
    problem.phases(1).ncontrols = CO_NUMBER;
    problem.phases(1).nevents   = E1_NUMBER;
    problem.phases(1).npath     = PA_NUMBER;
-   problem.phases(1).nodes     = "[5, 15]";
+   problem.phases(1).nodes     = "[5, 50]";
 
-   problem.phases(2).nstates   = ST_NUMBER;
-   problem.phases(2).ncontrols = CO_NUMBER;
-   problem.phases(2).nevents   = EF_NUMBER;
-   problem.phases(2).npath     = PA_NUMBER;
-   problem.phases(2).nodes     = "[5, 15]";
+   int iphase;
+
+   for (iphase=2;iphase<STAGES;iphase++) {
+	 problem.phases(iphase).nstates   = ST_NUMBER;
+	 problem.phases(iphase).ncontrols = CO_NUMBER;
+	 problem.phases(iphase).nevents   = 0;
+	 problem.phases(iphase).npath     = PA_NUMBER;
+	 problem.phases(iphase).nodes     = "[5, 50]";
+   }
+
+   problem.phases(STAGES).nstates   = ST_NUMBER;
+   problem.phases(STAGES).ncontrols = CO_NUMBER;
+   problem.phases(STAGES).nevents   = EF_NUMBER;
+   problem.phases(STAGES).npath     = PA_NUMBER;
+   problem.phases(STAGES).nodes     = "[5, 50]";
 
    psopt_level2_setup(problem, algorithm);
 
    // Problem bounds
 
-   int iphase;
 
    // Times
    DMatrix ltM = DMatrix(STAGES + 1);
@@ -170,6 +182,7 @@ int main(void)
 	 ltM(iphase+2) = ltd;
 	 utM(iphase+2) = ltd * STAGE_TIME_MAX_FACTOR;
    }
+
    problem.bounds.lower.times = ltM;
    problem.bounds.upper.times = utM;
 
@@ -214,8 +227,8 @@ int main(void)
    problem.phases(1).guess.states = zeros(ST_NUMBER,5);
    problem.phases(1).guess.states(BI(ST_MASS), colon()) = linspace(StageParameters[0][SP_MASS], StageParameters[0][SP_MASS] - StageParameters[0][SP_PROPELLANT] , 5);
 
-   problem.phases(1).guess.time = linspace(0,60, 5);
-   problem.phases(2).guess.time = linspace(60,180, 5);
+   problem.phases(1).guess.time = linspace(0, 60, 5);
+   problem.phases(2).guess.time = linspace(60, 180, 5);
 
 
 
