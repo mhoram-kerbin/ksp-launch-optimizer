@@ -45,7 +45,8 @@
 #define ST_VELX   3
 #define ST_VELY   4
 #define ST_VELZ   5
-#define ST_NUMBER 6
+#define ST_MASS   6
+#define ST_NUMBER 7
 
 #define PA_NUMBER 0
 

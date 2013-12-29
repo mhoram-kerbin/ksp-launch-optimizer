@@ -99,6 +99,10 @@ void linkages( adouble* linkages, adouble* xad)
 	linkages[index++] = stat_prev[ST_VELX] - stat_next[ST_VELX];
 	linkages[index++] = stat_prev[ST_VELY] - stat_next[ST_VELY];
 	linkages[index++] = stat_prev[ST_VELZ] - stat_next[ST_VELZ];
+
+	// mass
+	adouble mass_difference = StageParameter[iphase-1][SP_MASS]-StageParameter[iphase-1][SP_PROPELLANT] - StageParameter[iphase][SP_MASS];
+	linkages[index++] = stat_prev[ST_MASS]-mass_difference-stat_next[ST_MASS];
   }
 
 }
@@ -156,6 +160,9 @@ int main(void)
 	problem.phases(iphase).bounds.upper.states(BI(ST_VELY)) =  PLANET_MAX_V;
 	problem.phases(iphase).bounds.lower.states(BI(ST_VELZ)) = -PLANET_MAX_V;
 	problem.phases(iphase).bounds.upper.states(BI(ST_VELZ)) =  PLANET_MAX_V;
+
+	problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameter[iphase-1][SP_MASS] - StageParameter[iphase-1][SP_PROPELLANT];
+	problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameter[iphase-1][SP_MASS];
 
 	// Cotnrol Constraints
 	problem.phases(iphase).bounds.lower.controls(BI(CO_THRX)) = -StageParameter[iphase-1][SP_THRUST];
