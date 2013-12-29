@@ -26,8 +26,14 @@
 
 #define BI(i) ((1 + i))
 
-#define ST_MASS 0
-#define ST_NUMBER 1
+#define ST_POSX 0
+#define ST_POSY 1
+#define ST_POSZ 2
+#define ST_VELX 3
+#define ST_VELY 4
+#define ST_VELZ 5
+#define ST_MASS 6
+#define ST_NUMBER 7
 
 #define CO_THRX 0
 #define CO_THRY 1
@@ -43,15 +49,29 @@
 #define SP_MIN_STAGE_TIME 6
 #define SP_NUMBER 7
 
-#define E1_L_MASS 0
-#define E1_NUMBER 1
+#define E1_L_POSX 0
+#define E1_L_POSY 1
+#define E1_L_POSZ 2
+#define E1_L_VELX 3
+#define E1_L_VELY 4
+#define E1_L_VELZ 5
+#define E1_L_MASS 6
+#define E1_NUMBER 7
 
 #define EF_MASS_F 0
 #define EF_NUMBER 1
 
 #define PA_THRUST 0
-#define PA_NUMBER 1
+#define PA_ALTITUDE 1
+#define PA_NUMBER 2
 
+#define LP_POSX 0
+#define LP_POSY 1
+#define LP_POSZ 2
+#define LP_VELX 3
+#define LP_VELY 4
+#define LP_VELZ 5
+#define LP_NUMBER 6
 
 // as global as constants can get
 
