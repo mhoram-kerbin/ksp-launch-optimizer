@@ -51,9 +51,9 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble Fy = controls[CO_THRY] * 1000;
   adouble Fz = controls[CO_THRZ] * 1000;
 
-  derivatives[ST_VELX] = Fx / StageParameter[iphase-1][SP_MASS];
-  derivatives[ST_VELY] = Fy / StageParameter[iphase-1][SP_MASS];
-  derivatives[ST_VELZ] = Fz / StageParameter[iphase-1][SP_MASS];
+  derivatives[ST_VELX] = Fx / states[ST_MASS];
+  derivatives[ST_VELY] = Fy / states[ST_MASS];
+  derivatives[ST_VELZ] = Fz / states[ST_MASS];
 
 }
 
