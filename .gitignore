@@ -15,5 +15,7 @@
 /*.dat
 *~
 /launch
+/simple
 /launch.txt
 /gnuplot.scp
+/error_message.txt

@@ -23,7 +23,7 @@
 #include "launch.hh"
 #include "setup.hh"
 
-static const double StageParameters[STAGES][6] = STAGE_PARAM;
+static const double StageParameters[STAGES][SP_NUMBER] = STAGE_PARAM;
 static double LaunchParameters[6];
 
 adouble norm(adouble x, adouble y, adouble z)
@@ -89,7 +89,7 @@ adouble endpoint_cost(adouble* initial_states, adouble* final_states,
 {
 
     if (iphase == STAGES) {
-	  //	  if (final_states[ST_MASS] == parameters[S_MASS] - parameters[S_PROPELLANT]) {
+	  //	  if (final_states[ST_MASS] == parameters[SP_MASS] - parameters[SP_PROPELLANT]) {
 	  //	adouble periapsis = get_periapsis(final_states);
 	  //		return TARGET_PERIAPSIS - periapsis;
 	  //} else {
@@ -125,7 +125,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 	 PLANET_ROT_PER);
   adouble vel[3]; vel[0] = states[ST_VELX]; vel[1] = states[ST_VELY]; vel[2] = states[ST_VELZ];
   adouble vel_mod = - 0.5 * pressure * groundvelocity *
-	StageParameters[iphase-1][S_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] /
+	StageParameters[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] /
 	sqrt(dot(vel, vel, 3));
   adouble Dx = states[ST_VELX] * vel_mod;
   adouble Dy = states[ST_VELY] * vel_mod;
@@ -150,18 +150,18 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   derivatives[ST_VELY] = Fy / states[ST_MASS];
   derivatives[ST_VELZ] = Fz / states[ST_MASS];
 
-  //  cout << "Time(" << iphase << ") " << time << endl << "Pos     " << pos[0] << " " << pos[1] << " " << pos[2] << " norm " << pos_norm << endl << "Vel     " << states[3] << " " << states[4] << " " << states[5] << endl << "Mass    " << states[ST_MASS] << endl << "GV      " << groundvelocity << endl << "Thrust  " << controls[CO_THRX] << " " << controls[CO_THRY] << " " << controls[CO_THRZ] << endl << "Drag    " << Dx << " " << Dy << " " << Dz <<endl << "Gravity " << Gx << " " << Gy << " " << Gz << endl << "Res " << derivatives[ST_VELX] << " " << derivatives[ST_VELY] << " " << derivatives[ST_VELZ] << endl << endl;
+    cout << "Time(" << iphase << ") " << time << endl << "Pos     " << pos[0] << " " << pos[1] << " " << pos[2] << " norm " << pos_norm << endl << "Vel     " << states[3] << " " << states[4] << " " << states[5] << endl << "Mass    " << states[ST_MASS] << endl << "GV      " << groundvelocity << endl << "Thrust  " << controls[CO_THRX] << " " << controls[CO_THRY] << " " << controls[CO_THRZ] << endl << "Drag    " << Dx << " " << Dy << " " << Dz <<endl << "Gravity " << Gx << " " << Gy << " " << Gz << endl << "Res " << derivatives[ST_VELX] << " " << derivatives[ST_VELY] << " " << derivatives[ST_VELZ] << endl << endl;
   // calculate mass change
 
-  adouble isp = get_isp(pressure, StageParameters[iphase-1][S_ISP_0],
-						StageParameters[iphase-1][S_ISP_VAC]);
+  adouble isp = get_isp(pressure, StageParameters[iphase-1][SP_ISP_0],
+						StageParameters[iphase-1][SP_ISP_VAC]);
 
   adouble thrust_norm = norm(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
 
-  derivatives[ST_MASS] = -thrust_norm / (isp * G_0);
+  derivatives[ST_MASS] = -thrust_norm / (isp * G_0) * 1000;
 
   // path restriction on thrust
-  path[P_THRUST] = thrust_norm;
+  path[PA_THRUST] = thrust_norm;
 
 }
 
@@ -185,9 +185,10 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
             adouble* parameters,adouble& t0, adouble& tf, adouble* xad,
             int iphase)
 {
+  // initial mass
+  e[E_MASS_BEGIN] = initial_states[ST_MASS];
 
   // Launch Parameters
-
   if (iphase == 1) {
 	e[E1_L_POSX] = initial_states[ST_POSX];
 	e[E1_L_POSY] = initial_states[ST_POSY];
@@ -195,37 +196,25 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
 	e[E1_L_VELX] = initial_states[ST_VELX];
 	e[E1_L_VELY] = initial_states[ST_VELY];
 	e[E1_L_VELZ] = initial_states[ST_VELZ];
-	e[E1_L_MASS] = initial_states[ST_MASS];
-	e[E1_L_PVS] = LaunchParameters[L_POSX] * LaunchParameters[L_VELX] +
-	  LaunchParameters[L_POSY] * LaunchParameters[L_VELY] +
-	  LaunchParameters[L_POSZ] * LaunchParameters[L_VELZ];
 
+	// Scalarproduct of Pos and Vel to check if they are 90 deg apart
+	e[E1_L_PVS] = initial_states[ST_POSX] * initial_states[ST_VELX] +
+	  initial_states[ST_POSY] * initial_states[ST_VELY] +
+	  initial_states[ST_POSZ] * initial_states[ST_VELZ];
+
+	// Launchplace and thrust must point in the same direction
 	adouble controls[3];
 	get_initial_controls(controls, xad, 1);
-	e[E1_L_THRUST_XY] = controls[C_X] * initial_states[ST_POSY] - controls[C_Y] * initial_states[ST_POSX];
-	e[E1_L_THRUST_XZ] = controls[C_X] * initial_states[ST_POSZ] - controls[C_Z] * initial_states[ST_POSX];
+	e[E1_L_THRUST_XY] = controls[CO_THRX] * initial_states[ST_POSY] - controls[CO_THRY] * initial_states[ST_POSX];
+	e[E1_L_THRUST_XZ] = controls[CO_THRX] * initial_states[ST_POSZ] - controls[CO_THRZ] * initial_states[ST_POSX];
   }
 
   if (iphase == STAGES) {
 
-	// calculate periapsis
-	adouble p[3]; p[0] = final_states[ST_POSX]; p[1] = final_states[ST_POSY]; p[2] = final_states[ST_POSZ];
-	adouble v[3]; v[0] = final_states[ST_VELX]; v[1] = final_states[ST_VELY]; v[2] = final_states[ST_VELZ];
-	adouble h[3];
-	cross(p, v, h);
-	adouble ev[3];
-	cross(v, h, ev);
-	adouble pos_norm = norm(final_states[ST_POSX], final_states[ST_POSY], final_states[ST_POSZ]);
-	adouble mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+	// Mass
+	e[EF_MASS_F] = final_states[ST_MASS];
 
-	int i;
-	for (i=0;i<3;i++) {
-	  ev[i] = ev[i] / mu - final_states[ST_POSX + i] / pos_norm;
-	}
-	adouble e_norm = dot(ev, ev, 3);
-
-	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
-
+	// Periapsis
 	e[EF_PERIAPSIS] = get_periapsis(final_states);
   }
 }
@@ -238,20 +227,22 @@ void linkages( adouble* linkages, adouble* xad)
 	int i,j;
 	for (i=1;i<STAGES;i++) {
 	  // get states
-	  time_prev = get_final_time(xad, i);
-	  time_next = get_initial_time(xad, i+1);
 	  get_final_states(stat_prev, xad, i);
 	  get_initial_states(stat_next, xad, i+1);
 
 	  // time
+	  time_prev = get_final_time(xad, i);
+	  time_next = get_initial_time(xad, i+1);
 	  linkages[index++] = time_prev - time_next;
+
 	  // position and velocity
 	  for (j=0;j<6;j++) {
 		linkages[index++] = stat_prev[j]-stat_next[j];
 	  }
 	  // mass
-	  adouble mass_difference = StageParameters[i-1][S_MASS]-StageParameters[i-1][S_PROPELLANT] - StageParameters[i][S_MASS];
+	  adouble mass_difference = StageParameters[i-1][SP_MASS]-StageParameters[i-1][SP_PROPELLANT] - StageParameters[i][SP_MASS];
 	  linkages[index++] = stat_prev[ST_MASS]-mass_difference-stat_next[ST_MASS];
+	  //cout << "md " << mass_difference << endl;
 	}
 
 }
@@ -270,28 +261,28 @@ int main(void)
    problem.name = "KSP Launch Optimization";
    problem.outfilename = "launch.txt";
    problem.nphases = STAGES;
-   problem.nlinkages = 0;//8;
+   problem.nlinkages = (STAGES-1) * (ST_NUMBER + 1);
    psopt_level1_setup(problem);
 
    // Level 2 Setup
 
    problem.phases(1).nstates   = ST_NUMBER;
    problem.phases(1).ncontrols = CO_NUMBER;
-   problem.phases(1).nevents   = E1_EVENTS;
-   problem.phases(1).npath     = 1;
+   problem.phases(1).nevents   = E1_NUMBER;
+   problem.phases(1).npath     = PA_NUMBER;
    problem.phases(1).nodes     = "[5, 15]";
 
    problem.phases(2).nstates   = ST_NUMBER;
    problem.phases(2).ncontrols = CO_NUMBER;
-   problem.phases(2).nevents   = EF_EVENTS;
-   problem.phases(2).npath     = 1;
+   problem.phases(2).nevents   = EF_NUMBER;
+   problem.phases(2).npath     = PA_NUMBER;
    problem.phases(2).nodes     = "[5, 15]";
 
    psopt_level2_setup(problem, algorithm);
 
    // Problem bounds
 
-   problem.bounds.lower.times = "[0,   60.0,   178.0]";
+   problem.bounds.lower.times = "[0,   60.0,  178.0]";
    problem.bounds.upper.times = "[0, 1000.0, 2000.0]";
 
    int iphase;
@@ -309,22 +300,30 @@ int main(void)
 	 problem.phases(iphase).bounds.upper.states(BI(ST_VELY)) = PLANET_MAX_V;
 	 problem.phases(iphase).bounds.lower.states(BI(ST_VELZ)) = -PLANET_MAX_V;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_VELZ)) = PLANET_MAX_V;
-	 problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS] - StageParameters[iphase-1][S_PROPELLANT];
-	 problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameters[iphase-1][S_MASS];
+	 problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameters[iphase-1][SP_MASS] - StageParameters[iphase-1][SP_PROPELLANT];
+	 problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameters[iphase-1][SP_MASS];
 
-	 problem.phases(iphase).bounds.lower.controls(BI(C_X)) = 0;
-	 problem.phases(iphase).bounds.upper.controls(BI(C_X)) = StageParameters[iphase-1][S_THRUST];
-	 problem.phases(iphase).bounds.lower.controls(BI(C_Y)) = 0;
-	 problem.phases(iphase).bounds.upper.controls(BI(C_Y)) = StageParameters[iphase-1][S_THRUST];
-	 problem.phases(iphase).bounds.lower.controls(BI(C_Z)) = 0;
-	 problem.phases(iphase).bounds.upper.controls(BI(C_Z)) = StageParameters[iphase-1][S_THRUST];
+	 problem.phases(iphase).bounds.lower.controls(BI(CO_THRX)) = 0;
+	 problem.phases(iphase).bounds.upper.controls(BI(CO_THRX)) = StageParameters[iphase-1][SP_THRUST];
+	 problem.phases(iphase).bounds.lower.controls(BI(CO_THRY)) = 0;
+	 problem.phases(iphase).bounds.upper.controls(BI(CO_THRY)) = StageParameters[iphase-1][SP_THRUST];
+	 problem.phases(iphase).bounds.lower.controls(BI(CO_THRZ)) = 0;
+	 problem.phases(iphase).bounds.upper.controls(BI(CO_THRZ)) = StageParameters[iphase-1][SP_THRUST];
 
-	 problem.phases(iphase).bounds.lower.path(BI(P_THRUST)) = 0;
-	 problem.phases(iphase).bounds.upper.path(BI(P_THRUST)) = StageParameters[iphase-1][S_THRUST];
+	 problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 0;
+	 problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameters[iphase-1][SP_THRUST];
 
 	 if (iphase == STAGES) { // at the end of the final stage the mass can be larger than total mass - propellant mass
 	 }
 
+   }
+
+   // Events
+
+   int i;
+   for (i=1;i<=STAGES;i++) {
+	 problem.phases(i).bounds.lower.events(BI(E_MASS_BEGIN)) = StageParameters[i-1][SP_MASS];
+	 problem.phases(i).bounds.upper.events(BI(E_MASS_BEGIN)) = StageParameters[i-1][SP_MASS];
    }
 
    problem.phases(1).bounds.lower.events(BI(E1_L_POSX)) = LaunchParameters[L_POSX];
@@ -337,48 +336,54 @@ int main(void)
    problem.phases(1).bounds.upper.events(BI(E1_L_VELX)) = LaunchParameters[L_VELX];
    problem.phases(1).bounds.lower.events(BI(E1_L_VELY)) = LaunchParameters[L_VELY];
    problem.phases(1).bounds.upper.events(BI(E1_L_VELY)) = LaunchParameters[L_VELY];
-   problem.phases(1).bounds.lower.events(BI(E1_L_VELZ)) = 0;
-   problem.phases(1).bounds.upper.events(BI(E1_L_VELZ)) = 0;
-   //   problem.phases(1).bounds.lower.events(BI(E1_L_PVS)) = 0;
-   //   problem.phases(1).bounds.upper.events(BI(E1_L_PVS)) = 0;
-//   problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XY)) = 0;
-//   problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XY)) = 0;
-//   problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XZ)) = 0;
-//   problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XZ)) = 0;
-   problem.phases(1).bounds.lower.events(BI(E1_L_MASS)) = StageParameters[0][S_MASS];
-   problem.phases(1).bounds.upper.events(BI(E1_L_MASS)) = StageParameters[0][S_MASS];
+   problem.phases(1).bounds.lower.events(BI(E1_L_VELZ)) = LaunchParameters[L_VELZ];
+   problem.phases(1).bounds.upper.events(BI(E1_L_VELZ)) = LaunchParameters[L_VELZ];
+   problem.phases(1).bounds.lower.events(BI(E1_L_PVS)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_PVS)) = 0;
+   problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XY)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XY)) = 0;
+   problem.phases(1).bounds.lower.events(BI(E1_L_THRUST_XZ)) = 0;
+   problem.phases(1).bounds.upper.events(BI(E1_L_THRUST_XZ)) = 0;
 
    problem.phases(STAGES).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS;
    problem.phases(STAGES).bounds.upper.events(BI(EF_PERIAPSIS)) = PLANET_SOI;
-   problem.phases(STAGES).bounds.lower.events(BI(EF_MASS_F)) = StageParameters[STAGES-1][S_MASS] - StageParameters[STAGES-1][S_PROPELLANT];
-   problem.phases(STAGES).bounds.upper.events(BI(EF_MASS_F)) = StageParameters[STAGES-1][S_MASS];
+   problem.phases(STAGES).bounds.lower.events(BI(EF_MASS_F)) = StageParameters[STAGES-1][SP_MASS] - StageParameters[STAGES-1][SP_PROPELLANT];
+   problem.phases(STAGES).bounds.upper.events(BI(EF_MASS_F)) = StageParameters[STAGES-1][SP_MASS];
 
    // Guesses
 
-   int i;
+   double tim = 0;
    for (i=0;i<STAGES;i++) {
-	 problem.phases(i+1).guess.controls = zeros(3,5);
-	 problem.phases(i+1).guess.controls(1,colon()) = StageParameters[i][S_THRUST]*ones( 1, 5);
-	 problem.phases(i+1).guess.controls(2,colon()) = zeros(1, 5);
-	 problem.phases(i+1).guess.controls(3,colon()) = zeros(1, 5);
+	 problem.phases(BI(i)).guess.controls = zeros(CO_NUMBER,SUBDIVISIONS);
+	 problem.phases(BI(i)).guess.controls(1,colon()) = StageParameters[i][SP_THRUST]*ones( 1, SUBDIVISIONS);
+	 problem.phases(BI(i)).guess.controls(2,colon()) = zeros(1, SUBDIVISIONS);
+	 problem.phases(BI(i)).guess.controls(3,colon()) = zeros(1, SUBDIVISIONS);
+
+	 problem.phases(BI(i)).guess.time = linspace(tim, tim + StageParameters[i][SP_MIN_STAGE_TIME], SUBDIVISIONS);
+	 tim += StageParameters[i][SP_MIN_STAGE_TIME];
    }
 
-   problem.phases(1).guess.states = zeros(7,5);
-   problem.phases(1).guess.states(1, colon()) = LaunchParameters[L_POSX]* ones(1 , 5);
-   problem.phases(1).guess.states(2, colon()) = LaunchParameters[L_POSY]* ones(1 , 5);
-   problem.phases(1).guess.states(3, colon()) = LaunchParameters[L_POSZ]* ones(1 , 5);
-   problem.phases(1).guess.states(4, colon()) = LaunchParameters[L_VELX]* ones(1 , 5);
-   problem.phases(1).guess.states(5, colon()) = LaunchParameters[L_VELY]* ones(1 , 5);
-   problem.phases(1).guess.states(6, colon()) = LaunchParameters[L_VELZ]* ones(1 , 5);
-   problem.phases(1).guess.states(7, colon()) = linspace(StageParameters[0][S_MASS], StageParameters[0][S_MASS] - StageParameters[0][S_PROPELLANT] , 5);
+   problem.phases(1).guess.states = zeros(ST_NUMBER,5);
+   problem.phases(1).guess.states(1, colon()) = LaunchParameters[L_POSX]* ones(1, SUBDIVISIONS);
+   problem.phases(1).guess.states(2, colon()) = LaunchParameters[L_POSY]* ones(1, SUBDIVISIONS);
+   problem.phases(1).guess.states(3, colon()) = LaunchParameters[L_POSZ]* ones(1, SUBDIVISIONS);
+   problem.phases(1).guess.states(4, colon()) = LaunchParameters[L_VELX]* ones(1, SUBDIVISIONS);
+   problem.phases(1).guess.states(5, colon()) = LaunchParameters[L_VELY]* ones(1, SUBDIVISIONS);
+   problem.phases(1).guess.states(6, colon()) = LaunchParameters[L_VELZ]* ones(1, SUBDIVISIONS);
+   problem.phases(1).guess.states(7, colon()) = linspace(StageParameters[0][SP_MASS], StageParameters[0][SP_MASS] - StageParameters[0][SP_PROPELLANT] , SUBDIVISIONS);
 
-   problem.phases(1).guess.time = linspace(0,60, 5);
-   problem.phases(2).guess.time = linspace(60,180, 5);
+   problem.phases(2).guess.states = zeros(ST_NUMBER,5);
+   problem.phases(2).guess.states(1, colon()) = LaunchParameters[L_POSX]* ones(1, SUBDIVISIONS);
+   problem.phases(2).guess.states(2, colon()) = LaunchParameters[L_POSY]* ones(1, SUBDIVISIONS);
+   problem.phases(2).guess.states(3, colon()) = LaunchParameters[L_POSZ]* ones(1, SUBDIVISIONS);
+   problem.phases(2).guess.states(4, colon()) = LaunchParameters[L_VELX]* ones(1, SUBDIVISIONS);
+   problem.phases(2).guess.states(5, colon()) = LaunchParameters[L_VELY]* ones(1, SUBDIVISIONS);
+   problem.phases(2).guess.states(6, colon()) = LaunchParameters[L_VELZ]* ones(1, SUBDIVISIONS);
+   problem.phases(2).guess.states(7, colon()) = linspace(StageParameters[1][SP_MASS], StageParameters[1][SP_MASS] - StageParameters[1][SP_PROPELLANT], SUBDIVISIONS);
 
 
 
 
-   //   problem.integrand_cost = &integrand_cost;
    problem.endpoint_cost = &endpoint_cost;
    problem.dae = &dae;
    problem.events = &events;
@@ -405,15 +410,17 @@ int main(void)
 
    DMatrix r = x(colon(1,3),colon());
    DMatrix v = x(colon(4,6),colon());
+   DMatrix mass = x(colon(7,7),colon());
    DMatrix altitude = Sqrt(sum(elemProduct(r,r)))/1000.0;
    DMatrix speed = Sqrt(sum(elemProduct(v,v)));
    DMatrix um = u(colon(1,3),colon());
    DMatrix uma = Sqrt(sum(elemProduct(um,um)));
 
    plot(t,uma,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("thrust (kN)"));
+   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("mass (kg)"));
 //   plot(t,altitude,problem.name, "time (s)", "position (km)");
 //   plot(t,speed,problem.name, "time (s)", "speed (m/s)");
-//   plot(t,u,problem.name,"time (s)", "u");
+   plot(t,u,problem.name,const_cast<char *>("time (s)"), const_cast<char *>("u"));
 //   plot(t,altitude,problem.name, "time (s)", "position (km)", "alt",
 //		"pdf", "launch_position.pdf");
 //   plot(t,speed,problem.name, "time (s)", "speed (m/s)", "speed",

@@ -36,4 +36,8 @@
 
 #define STAGES (2)
 
-#define STAGE_PARAM {{4000, 9640, 200.0, 320, 370, 0.2}, {2000, 3590,  50.0, 300, 390, 0.2}}
+#define STAGE_PARAM {{4000, 9640, 200.0, 320, 370, 0.2, 58}, {2000, 3590,  50.0, 300, 390, 0.2, 117}}
+
+#define SUBDIVISIONS 5
+
+#define STAGE_TIME_MAX_FACTOR 10
