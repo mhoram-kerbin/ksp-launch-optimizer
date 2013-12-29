@@ -251,11 +251,11 @@ int main(void)
 	 problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameters[iphase-1][SP_MASS] - StageParameters[iphase-1][SP_PROPELLANT];
 	 problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameters[iphase-1][SP_MASS];
 
-	 problem.phases(iphase).bounds.lower.states(BI(ST_POSX)) = 0;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSX)) = -PLANET_SOI;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_POSX)) = PLANET_SOI;
-	 problem.phases(iphase).bounds.lower.states(BI(ST_POSY)) = 0;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSY)) = -PLANET_SOI;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_POSY)) = PLANET_SOI;
-	 problem.phases(iphase).bounds.lower.states(BI(ST_POSZ)) = 0;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSZ)) = -PLANET_SOI;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_POSZ)) = PLANET_SOI;
 
 	 problem.phases(iphase).bounds.lower.states(BI(ST_VELX)) = -PLANET_MAX_V;

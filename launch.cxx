@@ -150,7 +150,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   derivatives[ST_VELY] = Fy / states[ST_MASS];
   derivatives[ST_VELZ] = Fz / states[ST_MASS];
 
-    cout << "Time(" << iphase << ") " << time << endl << "Pos     " << pos[0] << " " << pos[1] << " " << pos[2] << " norm " << pos_norm << endl << "Vel     " << states[3] << " " << states[4] << " " << states[5] << endl << "Mass    " << states[ST_MASS] << endl << "GV      " << groundvelocity << endl << "Thrust  " << controls[CO_THRX] << " " << controls[CO_THRY] << " " << controls[CO_THRZ] << endl << "Drag    " << Dx << " " << Dy << " " << Dz <<endl << "Gravity " << Gx << " " << Gy << " " << Gz << endl << "Res " << derivatives[ST_VELX] << " " << derivatives[ST_VELY] << " " << derivatives[ST_VELZ] << endl << endl;
+  //cout << "Time(" << iphase << ") " << time << endl << "Pos     " << pos[0] << " " << pos[1] << " " << pos[2] << " norm " << pos_norm << endl << "Vel     " << states[3] << " " << states[4] << " " << states[5] << endl << "Mass    " << states[ST_MASS] << endl << "GV      " << groundvelocity << endl << "Thrust  " << controls[CO_THRX] << " " << controls[CO_THRY] << " " << controls[CO_THRZ] << endl << "Drag    " << Dx << " " << Dy << " " << Dz <<endl << "Gravity " << Gx << " " << Gy << " " << Gz << endl << "Res " << derivatives[ST_VELX] << " " << derivatives[ST_VELY] << " " << derivatives[ST_VELZ] << endl << endl;
   // calculate mass change
 
   adouble isp = get_isp(pressure, StageParameters[iphase-1][SP_ISP_0],
@@ -288,11 +288,11 @@ int main(void)
    int iphase;
 
    for(iphase = 1;iphase <= STAGES;iphase++) {
-	 problem.phases(iphase).bounds.lower.states(BI(ST_POSX)) = 0;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSX)) = -PLANET_SOI;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_POSX)) = PLANET_SOI;
-	 problem.phases(iphase).bounds.lower.states(BI(ST_POSY)) = 0;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSY)) = -PLANET_SOI;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_POSY)) = PLANET_SOI;
-	 problem.phases(iphase).bounds.lower.states(BI(ST_POSZ)) = 0;
+	 problem.phases(iphase).bounds.lower.states(BI(ST_POSZ)) = -PLANET_SOI;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_POSZ)) = PLANET_SOI;
 	 problem.phases(iphase).bounds.lower.states(BI(ST_VELX)) = -PLANET_MAX_V;
 	 problem.phases(iphase).bounds.upper.states(BI(ST_VELX)) = PLANET_MAX_V;
