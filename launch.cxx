@@ -245,23 +245,6 @@ void linkages( adouble* linkages, adouble* xad)
 	  linkages[index++] = stat_prev[ST_MASS]-mass_difference-stat_next[ST_MASS];
 	}
 
-	/*
-    double m_tot_first   = 104380.0;
-    double m_prop_first  = 95550.0;
-    double m_dry_first   = m_tot_first-m_prop_first;
-    double m_tot_srb     = 19290.0;
-    double m_prop_srb    = 17010.0;
-    double m_dry_srb     = m_tot_srb-m_prop_srb;
-
-    int index=0;
-
-    auto_link(linkages, &index, xad, 1, 2 );
-    linkages[index-2]-= 6*m_dry_srb;
-    auto_link(linkages, &index, xad, 2, 3 );
-    linkages[index-2]-= 3*m_dry_srb;
-    auto_link(linkages, &index, xad, 3, 4 );
-    linkages[index-2]-= m_dry_first;
-	*/
 }
 
 int main(void)
