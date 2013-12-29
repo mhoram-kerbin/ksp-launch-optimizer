@@ -31,6 +31,7 @@
 #define ST_VELY 4
 #define ST_VELZ 5
 #define ST_MASS 6
+#define ST_NUMBER 7
 
 //#define SP_PLANET_MASS 0
 //#define SP_PLANET_RADIUS 1
@@ -46,6 +47,7 @@
 #define CO_THRX 0
 #define CO_THRY 1
 #define CO_THRZ 2
+#define CO_NUMBER 3
 
 #define S_PROPELLANT 0
 #define S_MASS 1
@@ -77,8 +79,10 @@
 #define E1_L_PVS 7
 #define E1_L_THRUST_XY 8
 #define E1_L_THRUST_XZ 9
+#define E1_EVENTS 10
 #define EF_MASS_F 2
 #define EF_PERIAPSIS 3
+#define EF_EVENTS 4
 // as global as constants can get
 
 #define GRAVITATIONAL_CONSTANT (6.674E-11)
