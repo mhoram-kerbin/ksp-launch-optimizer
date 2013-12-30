@@ -61,6 +61,14 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble pos_norm = sqrt(dot(pos, pos, 3));
   path[PA_DISTANCE] = pos_norm;
 
+  adouble thrust_norm = norm(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
+  path[PA_THRUST] = thrust_norm;
+
+}
+
+adouble norm(adouble x, adouble y, adouble z)
+{
+  return sqrt(x*x + y*y + z*z);
 }
 
 void events(adouble* e, adouble* initial_states, adouble* final_states,
@@ -181,6 +189,8 @@ int main(void)
 	// Path Constraints
 	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = PLANET_RADIUS;
 	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = PLANET_SOI;
+	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 0;
+	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST];
 
   }
 
