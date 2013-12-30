@@ -68,7 +68,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
   // Mass Derivative
   adouble altitude = sqrt(pos_norm2) - PLANET_RADIUS;
-  adouble pressure = calc_pressure(altitude, PLANET_P_0, PLANET_SCALE_HEIGHT);
+  adouble pressure = calc_pressure(altitude);
   adouble isp = get_isp(pressure, StageParameter[iphase-1][SP_ISP_0],
 						StageParameter[iphase-1][SP_ISP_VAC]);
   derivatives[ST_MASS] = -sqrt(thrust_norm2) / (isp * G_0) * 1000;
@@ -84,9 +84,9 @@ adouble norm2(adouble x, adouble y, adouble z)
   return x*x + y*y + z*z;
 }
 
-adouble calc_pressure(adouble altitude, adouble p_0, adouble psh)
+adouble calc_pressure(adouble altitude)
 {
-  return p_0 * exp(-altitude / psh);
+  return PLANET_P_0 * exp(-altitude / PLANET_SCALE_HEIGHT);
 }
 
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac)
@@ -116,7 +116,50 @@ adouble get_periapsis(adouble* states)
 
 	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
 
-	return a * (1 - e_norm);
+  return a * (1 - e_norm);
+}
+
+void get_eccentricity_vector(adouble* states, adouble* ev)
+{
+  adouble p[3]; p[0] = states[ST_POSX]; p[1] = states[ST_POSY]; p[2] = states[ST_POSZ];
+  adouble v[3]; v[0] = states[ST_VELX]; v[1] = states[ST_VELY]; v[2] = states[ST_VELZ];
+  adouble h[3];
+  adouble pos_norm = sqrt(dot(p, p, 3));
+
+  cross(p, v, h);
+  cross(v, h, ev);
+  ev[0] = ev[0] / PLANET_MU - p[0] / pos_norm;
+  ev[1] = ev[1] / PLANET_MU - p[1] / pos_norm;
+  ev[2] = ev[2] / PLANET_MU - p[2] / pos_norm;
+
+}
+
+adouble get_ground_velocity(adouble* states)
+{
+  adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
+  adouble gv[3]; gv[0] = states[ST_VELX]; gv[1] = states[ST_VELY]; gv[2] = states[ST_VELZ];
+  adouble pos_norm = sqrt(dot(pos, pos, 3));
+
+  adouble latitude = get_latitude(pos);
+  adouble longitude = get_longitude(pos);
+
+  adouble factor = pos_norm * 2 * M_PI * cos(latitude) / PLANET_ROT_PER;
+
+  gv[0] -= -sin(longitude) * factor;
+  gv[1] -=  cos(longitude) * factor;
+  gv[2] -= 0;
+
+  return sqrt( dot(gv, gv, 3) );
+}
+
+adouble get_latitude(adouble* pos)
+{
+  return atan2(pos[ST_POSZ], sqrt(pos[ST_POSX] * pos[ST_POSX] + pos[ST_POSY] * pos[ST_POSY]));
+}
+
+adouble get_longitude(adouble* pos)
+{
+  return atan2(pos[ST_POSY], pos[ST_POSX]);
 }
 
 void events(adouble* e, adouble* initial_states, adouble* final_states,
@@ -323,34 +366,64 @@ int main(void)
   t.Save("t.dat");
 
   DMatrix pos = x(colon(BI(ST_POSX),BI(ST_POSZ)),colon());
+  DMatrix distance = Sqrt(sum(elemProduct(pos,pos)));
+  DMatrix altitude = (distance - PLANET_RADIUS) / 1000;
+  pos = extend_dmatrix_row(pos, distance);
+
   DMatrix vel = x(colon(BI(ST_VELX),BI(ST_VELZ)),colon());
+  DMatrix velnorm = Sqrt(sum(elemProduct(vel, vel)));
+  vel = extend_dmatrix_row(vel, Sqrt(sum(elemProduct(vel, vel))));
   DMatrix mass = x(colon(BI(ST_MASS),BI(ST_MASS)),colon());
-  DMatrix un = Sqrt(sum(elemProduct(u,u)));
-  long cols = pos.GetNoCols();
+  u = extend_dmatrix_row(u, Sqrt(sum(elemProduct(u,u))));
+
+  long cols = t.GetNoCols();
   long i;
-  DMatrix h = DMatrix(3, cols);
-  DMatrix ev = DMatrix(3, cols);
+  //DMatrix h = DMatrix(3, cols);
+  //DMatrix ev = DMatrix(3, cols);
+  DMatrix e = DMatrix(1, cols);
   DMatrix periapsis = DMatrix(1, cols);
-  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+  //  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
   for (i=1;i<=cols;i++) {
-	h.SetColumn(cross(pos.Column(i), vel.Column(i)), i);
-	ev.SetColumn(cross(vel.Column(i), h.Column(i)), i);
-	double pos_norm = norm(pos(1, i), pos(2, i), pos(3, i)).getValue();
-	ev(1, i) = ev(1, i) / mu - pos(1,i) / pos_norm;
-	ev(2, i) = ev(2, i) / mu - pos(2,i) / pos_norm;
-	ev(3, i) = ev(3, i) / mu - pos(3,i) / pos_norm;
-	adouble e_norm = norm(ev(1, i), ev(2, i), ev(3, i));
-	periapsis(1, i) = 1 / (2 / pos_norm - 2 * pos_norm / mu);
+	adouble states[6];
+	states[ST_POSX] = pos(1,i);
+	states[ST_POSY] = pos(2,i);
+	states[ST_POSZ] = pos(3,i);
+	states[ST_VELX] = vel(1,i);
+	states[ST_VELY] = vel(2,i);
+	states[ST_VELZ] = vel(3,i);
+
+	adouble ev[3];
+	get_eccentricity_vector(states, ev);
+	double e_norm = sqrt(dot(ev, ev, 3).getValue());
+	e(1, i) = e_norm;
+
+	adouble p[3]; p[0] = states[ST_POSX]; p[1] = states[ST_POSY]; p[2] = states[ST_POSZ];
+	adouble v[3]; v[0] = states[ST_VELX]; v[1] = states[ST_VELY]; v[2] = states[ST_VELZ];
+
+	double pos_norm = sqrt(dot(p, p, 3).getValue());
+	double vel_norm = sqrt(dot(v, v, 3).getValue());
+	double a = SEMI_MAJOR(pos_norm, vel_norm);
+	periapsis(1, i) = a * (1 - e_norm);
   }
+  pos = extend_dmatrix_row(pos, periapsis);
+
 
   plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"));
+//  plot(t,distance,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"));
   plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"));
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
-  plot(t,un,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"));
-  plot(t,h,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("h (?)"));
-  plot(t,periapsis,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Periapsis (m)"));
+  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Excentricity"));
 
+}
+
+DMatrix extend_dmatrix_row(DMatrix matrix, DMatrix row)
+{
+  matrix.Transpose();
+  matrix(colon(), matrix.GetNoCols()+1) = ones(matrix.GetNoRows(), 1);
+  matrix.Transpose();
+  matrix(matrix.GetNoRows(), colon()) = row;
+  return matrix;
 }
 
 void init_launch_parameters()

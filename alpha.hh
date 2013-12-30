@@ -79,17 +79,30 @@ void setup_time_constraints(Prob problem);
 void setup_linkage_constraints(Prob problem);
 adouble norm(adouble x, adouble y, adouble z);
 adouble norm2(adouble x, adouble y, adouble z);
-adouble calc_pressure(adouble altitude, adouble p_0, adouble psh);
+adouble calc_pressure(adouble altitude);
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac);
 adouble get_periapsis(adouble* states);
-
-// Constant calculations
-
-#define ATMOSPHERIC_HEIGHT -log(1 / (1000000.0 * PLANET_P_0)) * PLANET_SCALE_HEIGHT
+void get_eccentricity_vector(adouble* states, adouble* ev);
+adouble get_ground_velocity(adouble* states);
+adouble get_latitude(adouble* pos);
+adouble get_longitude(adouble* pos);
+DMatrix extend_dmatrix_row(DMatrix matrix, DMatrix row);
 
 // as global as constants can get
 
 #define GRAVITATIONAL_CONSTANT (6.674E-11)
 
+// conversion factor for pressure and density
+#define CONVERSION_FACTOR (1.2230948554874)
+
 // conversion constant for fuelconsumption of engines
 #define G_0 (9.82)
+
+// Constant calculations
+
+#define ATMOSPHERIC_HEIGHT -log(1 / (1000000.0 * PLANET_P_0)) * PLANET_SCALE_HEIGHT
+#define PLANET_MU (GRAVITATIONAL_CONSTANT * PLANET_MASS)
+
+#define SEMI_MAJOR(POS_NORM, VEL_NORM) (1 / (2 / (POS_NORM) - (VEL_NORM) * (VEL_NORM) / PLANET_MU))
+
+#define CALC_DENSITY(altitude) (calc_pressure(altitude) * CONVERSION_FACTOR)
