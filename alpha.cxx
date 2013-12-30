@@ -58,10 +58,10 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   // Distance Path
 
   adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
-  adouble pos_norm = sqrt(dot(pos, pos, 3));
-  path[PA_DISTANCE] = pos_norm;
+  adouble pos_norm2 = dot(pos, pos, 3);
+  path[PA_DISTANCE] = pos_norm2;
 
-  adouble thrust_norm = norm(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
+  adouble thrust_norm = norm2(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
   path[PA_THRUST] = thrust_norm;
 
 }
@@ -69,6 +69,16 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 adouble norm(adouble x, adouble y, adouble z)
 {
   return sqrt(x*x + y*y + z*z);
+}
+
+adouble norm2(adouble x, adouble y, adouble z)
+{
+  return x*x + y*y + z*z;
+}
+
+adouble get_atmospheric_height()
+{
+  return -log(1 / (1000000.0 * PLANET_P_0)) * PLANET_SCALE_HEIGHT;
 }
 
 void events(adouble* e, adouble* initial_states, adouble* final_states,
@@ -187,10 +197,10 @@ int main(void)
 	problem.phases(iphase).bounds.upper.controls(BI(CO_THRZ)) =  StageParameter[iphase-1][SP_THRUST];
 
 	// Path Constraints
-	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = PLANET_RADIUS;
-	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = PLANET_SOI;
+	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = (double)PLANET_RADIUS * PLANET_RADIUS;
+	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI * PLANET_SOI;
 	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 0;
-	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST];
+	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
 
   }
 
@@ -213,6 +223,17 @@ int main(void)
   setup_linkage_constraints(problem);
 
   // Setup Guesses
+
+   DMatrix x1(7,SUBDIVISIONS);
+   DMatrix x2(7,SUBDIVISIONS);
+
+   x1(BI(ST_MASS),colon()) = linspace(StageParameter[0][SP_MASS], StageParameter[0][SP_MASS] - StageParameter[0][SP_PROPELLANT], SUBDIVISIONS);
+
+   problem.phases(1).guess.states = x1;
+
+   x2(BI(ST_MASS),colon()) = linspace(StageParameter[1][SP_MASS], StageParameter[1][SP_MASS] - StageParameter[1][SP_PROPELLANT], SUBDIVISIONS);
+
+   problem.phases(2).guess.states = x2;
 
 //  problem.phases(1).guess.states = zeros(ST_NUMBER,SUBDIVISIONS);
 //  problem.phases(1).guess.states(BI(ST_POSX), colon()) = LaunchParameter[LP_POSX]* ones(1, SUBDIVISIONS);

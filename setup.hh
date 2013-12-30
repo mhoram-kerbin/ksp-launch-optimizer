@@ -25,7 +25,7 @@
 // PSOPT Configuration
 
 #define SUBDIVISIONS 5
-#define NODES "[5, 30]"
+#define NODES "[5, 25]"
 
 
 #define PLANET_MASS (5.2915793E22) // kg

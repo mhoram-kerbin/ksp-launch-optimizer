@@ -76,8 +76,10 @@ void setup_event_constraints(Prob problem, int iphase);
 void setup_time_constraints(Prob problem);
 void setup_linkage_constraints(Prob problem);
 adouble norm(adouble x, adouble y, adouble z);
+adouble norm2(adouble x, adouble y, adouble z);
 adouble calc_pressure(adouble altitude, adouble p_0, adouble psh);
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac);
+adouble get_atmospheric_height();
 
 // as global as constants can get
 

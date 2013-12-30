@@ -25,7 +25,7 @@ alpha.o: alpha.cxx alpha.hh setup.hh Makefile
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 alpha: $(ALPHA_O) $(PSOPT_LIBS) $(DMATRIX_LIBS) $(SPARSE_LIBS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(KAPRI) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(LDFLAGS)
 
 launch.o: launch.cxx launch.hh setup.hh Makefile
 	$(CXX) -c $(CXXFLAGS) $< -o $@
@@ -37,7 +37,7 @@ simple.o: simple.cxx simple.hh setup.hh Makefile
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 simple: $(SIMPLE_O) $(PSOPT_LIBS) $(DMATRIX_LIBS) $(SPARSE_LIBS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(KAPRI) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(LDFLAGS)
 
 documentation.pdf: documentation.tex
 	latexmk -pdf documentation.tex
