@@ -24,8 +24,8 @@
 
 // PSOPT Configuration
 
-#define SUBDIVISIONS 5
-#define NODES "[5]"
+#define SUBDIVISIONS 10
+#define NODES "[10, 40]"
 
 // PROBLEM Configuration
 

@@ -31,6 +31,8 @@ adouble endpoint_cost(adouble* initial_states, adouble* final_states,
   if (iphase < STAGES) {
 	return 0.0;
   } else {
+	//	return -norm2(final_states[ST_POSX], final_states[ST_POSY], final_states[ST_POSZ]);
+	return -get_periapsis(final_states);
 	return tf;
 	return 0.0;
   }
@@ -94,6 +96,27 @@ adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac)
 	real_p = 1;
   }
   return isp_0 * real_p + isp_vac * (1 - real_p);
+}
+
+adouble get_periapsis(adouble* states)
+{
+	adouble p[3]; p[0] = states[ST_POSX]; p[1] = states[ST_POSY]; p[2] = states[ST_POSZ];
+	adouble v[3]; v[0] = states[ST_VELX]; v[1] = states[ST_VELY]; v[2] = states[ST_VELZ];
+	adouble h[3];
+	cross(p, v, h);
+	adouble ev[3];
+	cross(v, h, ev);
+	adouble pos_norm = norm(states[ST_POSX], states[ST_POSY], states[ST_POSZ]);
+	adouble mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+
+	ev[0] = ev[0] / mu - p[0] / pos_norm;
+	ev[1] = ev[1] / mu - p[1] / pos_norm;
+	ev[2] = ev[2] / mu - p[2] / pos_norm;
+	adouble e_norm = sqrt(dot(ev, ev, 3));
+
+	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
+
+	return a * (1 - e_norm);
 }
 
 void events(adouble* e, adouble* initial_states, adouble* final_states,
@@ -282,12 +305,51 @@ int main(void)
   algorithm.nlp_method                  	= "IPOPT";
   algorithm.scaling                     	= "automatic";
   algorithm.derivatives                 	= "automatic";
-  algorithm.nlp_iter_max                	= 500;
+  algorithm.nlp_iter_max                	= 5000;
+  //algorithm.nlp_tolerance = 1.e-4;
   //algorithm.mesh_refinement                   = "automatic";
   //algorithm.collocation_method = "trapezoidal";
   algorithm.ode_tolerance			= 1.e-6;
 
   psopt(solution, problem, algorithm);
+
+  DMatrix x, u, t;
+
+  x = (solution.get_states_in_phase(1) || solution.get_states_in_phase(2));
+  u = (solution.get_controls_in_phase(1) || solution.get_controls_in_phase(2));
+  t = (solution.get_time_in_phase(1) || solution.get_time_in_phase(2));
+  x.Save("x.dat");
+  u.Save("u.dat");
+  t.Save("t.dat");
+
+  DMatrix pos = x(colon(BI(ST_POSX),BI(ST_POSZ)),colon());
+  DMatrix vel = x(colon(BI(ST_VELX),BI(ST_VELZ)),colon());
+  DMatrix mass = x(colon(BI(ST_MASS),BI(ST_MASS)),colon());
+  DMatrix un = Sqrt(sum(elemProduct(u,u)));
+  long cols = pos.GetNoCols();
+  long i;
+  DMatrix h = DMatrix(3, cols);
+  DMatrix ev = DMatrix(3, cols);
+  DMatrix periapsis = DMatrix(1, cols);
+  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+  for (i=1;i<=cols;i++) {
+	h.SetColumn(cross(pos.Column(i), vel.Column(i)), i);
+	ev.SetColumn(cross(vel.Column(i), h.Column(i)), i);
+	double pos_norm = norm(pos(1, i), pos(2, i), pos(3, i)).getValue();
+	ev(1, i) = ev(1, i) / mu - pos(1,i) / pos_norm;
+	ev(2, i) = ev(2, i) / mu - pos(2,i) / pos_norm;
+	ev(3, i) = ev(3, i) / mu - pos(3,i) / pos_norm;
+	adouble e_norm = norm(ev(1, i), ev(2, i), ev(3, i));
+	periapsis(1, i) = 1 / (2 / pos_norm - 2 * pos_norm / mu);
+  }
+
+  plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"));
+  plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"));
+  plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
+  plot(t,un,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
+  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"));
+  plot(t,h,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("h (?)"));
+  plot(t,periapsis,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Periapsis (m)"));
 
 }
 
