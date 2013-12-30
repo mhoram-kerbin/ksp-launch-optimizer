@@ -55,6 +55,12 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   derivatives[ST_VELY] = Fy / states[ST_MASS];
   derivatives[ST_VELZ] = Fz / states[ST_MASS];
 
+  // Distance Path
+
+  adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
+  adouble pos_norm = sqrt(dot(pos, pos, 3));
+  path[PA_DISTANCE] = pos_norm;
+
 }
 
 void events(adouble* e, adouble* initial_states, adouble* final_states,
@@ -171,6 +177,10 @@ int main(void)
 	problem.phases(iphase).bounds.upper.controls(BI(CO_THRY)) =  StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.lower.controls(BI(CO_THRZ)) = -StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.upper.controls(BI(CO_THRZ)) =  StageParameter[iphase-1][SP_THRUST];
+
+	// Path Constraints
+	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = PLANET_RADIUS;
+	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = PLANET_SOI;
 
   }
 

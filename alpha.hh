@@ -48,7 +48,8 @@
 #define ST_MASS   6
 #define ST_NUMBER 7
 
-#define PA_NUMBER 0
+#define PA_DISTANCE 0
+#define PA_NUMBER   1
 
 #define CO_THRX   0
 #define CO_THRY   1
