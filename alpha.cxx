@@ -41,12 +41,12 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 		 adouble* controls, adouble* parameters, adouble& time,
 		 adouble* xad, int iphase)
 {
-  // derivatives of position
+  // Position derivatives
   derivatives[ST_POSX] = states[ST_VELX];
   derivatives[ST_POSY] = states[ST_VELY];
   derivatives[ST_POSZ] = states[ST_VELZ];
 
-  // derivatives of velocity
+  // Velocity derivatives
   adouble Fx = controls[CO_THRX] * 1000;
   adouble Fy = controls[CO_THRY] * 1000;
   adouble Fz = controls[CO_THRZ] * 1000;
@@ -61,9 +61,16 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble pos_norm2 = dot(pos, pos, 3);
   path[PA_DISTANCE] = pos_norm2;
 
-  adouble thrust_norm = norm2(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
-  path[PA_THRUST] = thrust_norm;
+  // Thrust Path
+  adouble thrust_norm2 = norm2(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
+  path[PA_THRUST] = thrust_norm2;
 
+  // Mass Derivative
+  adouble altitude = sqrt(pos_norm2) - PLANET_RADIUS;
+  adouble pressure = calc_pressure(altitude, PLANET_P_0, PLANET_SCALE_HEIGHT);
+  adouble isp = get_isp(pressure, StageParameter[iphase-1][SP_ISP_0],
+						StageParameter[iphase-1][SP_ISP_VAC]);
+  derivatives[ST_MASS] = -sqrt(thrust_norm2) / (isp * G_0) * 1000;
 }
 
 adouble norm(adouble x, adouble y, adouble z)
@@ -76,9 +83,23 @@ adouble norm2(adouble x, adouble y, adouble z)
   return x*x + y*y + z*z;
 }
 
-adouble get_atmospheric_height()
+double get_atmospheric_height()
 {
   return -log(1 / (1000000.0 * PLANET_P_0)) * PLANET_SCALE_HEIGHT;
+}
+
+adouble calc_pressure(adouble altitude, adouble p_0, adouble psh)
+{
+  return p_0 * exp(-altitude / psh);
+}
+
+adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac)
+{
+  adouble real_p = pressure;
+  if (real_p > 1) {
+	real_p = 1;
+  }
+  return isp_0 * real_p + isp_vac * (1 - real_p);
 }
 
 void events(adouble* e, adouble* initial_states, adouble* final_states,
@@ -199,7 +220,7 @@ int main(void)
 	// Path Constraints
 	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = (double)PLANET_RADIUS * PLANET_RADIUS;
 	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI * PLANET_SOI;
-	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 0;
+	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;
 	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
 
   }
@@ -224,27 +245,38 @@ int main(void)
 
   // Setup Guesses
 
-   DMatrix x1(7,SUBDIVISIONS);
-   DMatrix x2(7,SUBDIVISIONS);
+  DMatrix x1(ST_NUMBER,SUBDIVISIONS);
+  DMatrix x2(ST_NUMBER,SUBDIVISIONS);
+  DMatrix u1(CO_NUMBER,SUBDIVISIONS);
+  DMatrix u2(CO_NUMBER,SUBDIVISIONS);
 
-   x1(BI(ST_MASS),colon()) = linspace(StageParameter[0][SP_MASS], StageParameter[0][SP_MASS] - StageParameter[0][SP_PROPELLANT], SUBDIVISIONS);
+  x1(BI(ST_POSX),colon()) = linspace(LaunchParameter[LP_POSX], PLANET_RADIUS + get_atmospheric_height(), SUBDIVISIONS);
+  x1(BI(ST_POSY),colon()) = linspace(LaunchParameter[LP_POSY], LaunchParameter[LP_POSY], SUBDIVISIONS);
+  x1(BI(ST_POSZ),colon()) = linspace(LaunchParameter[LP_POSZ], LaunchParameter[LP_POSZ], SUBDIVISIONS);
+  x1(BI(ST_VELX),colon()) = linspace(LaunchParameter[LP_VELX], LaunchParameter[LP_VELX], SUBDIVISIONS);
+  x1(BI(ST_VELY),colon()) = linspace(LaunchParameter[LP_VELY], LaunchParameter[LP_VELY], SUBDIVISIONS);
+  x1(BI(ST_VELZ),colon()) = linspace(LaunchParameter[LP_VELZ], LaunchParameter[LP_VELZ], SUBDIVISIONS);
+  x1(BI(ST_MASS),colon()) = linspace(StageParameter[0][SP_MASS], StageParameter[0][SP_MASS] - StageParameter[0][SP_PROPELLANT], SUBDIVISIONS);
 
-   problem.phases(1).guess.states = x1;
+  problem.phases(1).guess.states = x1;
 
-   x2(BI(ST_MASS),colon()) = linspace(StageParameter[1][SP_MASS], StageParameter[1][SP_MASS] - StageParameter[1][SP_PROPELLANT], SUBDIVISIONS);
+  x2(BI(ST_POSX),colon()) = linspace(PLANET_RADIUS + get_atmospheric_height(), PLANET_RADIUS + get_atmospheric_height(), SUBDIVISIONS);
+  x2(BI(ST_POSY),colon()) = linspace(LaunchParameter[LP_POSY], LaunchParameter[LP_POSY] + get_atmospheric_height(), SUBDIVISIONS);
+  x2(BI(ST_POSZ),colon()) = linspace(LaunchParameter[LP_POSZ], LaunchParameter[LP_POSZ], SUBDIVISIONS);
+  x2(BI(ST_VELY),colon()) = linspace(LaunchParameter[LP_VELY], LaunchParameter[LP_VELY], SUBDIVISIONS);
+  x2(BI(ST_MASS),colon()) = linspace(StageParameter[1][SP_MASS], StageParameter[1][SP_MASS] - StageParameter[1][SP_PROPELLANT], SUBDIVISIONS);
 
-   problem.phases(2).guess.states = x2;
+  problem.phases(2).guess.states = x2;
 
-//  problem.phases(1).guess.states = zeros(ST_NUMBER,SUBDIVISIONS);
-//  problem.phases(1).guess.states(BI(ST_POSX), colon()) = LaunchParameter[LP_POSX]* ones(1, SUBDIVISIONS);
-//  //problem.phases(1).guess.states(2, colon()) = LaunchParameter[LP_POSY]* ones(1, SUBDIVISIONS);
-//  problem.phases(1).guess.states(BI(ST_POSZ), colon()) = LaunchParameter[LP_POSZ]* ones(1, SUBDIVISIONS);
-//
-//  problem.phases(2).guess.states = zeros(ST_NUMBER,SUBDIVISIONS);
-//  problem.phases(2).guess.states(BI(ST_POSX), colon()) = LaunchParameter[LP_POSX]* ones(1, SUBDIVISIONS);
-//  //problem.phases(1).guess.states(2, colon()) = LaunchParameter[LP_POSY]* ones(1, SUBDIVISIONS);
-//  problem.phases(2).guess.states(BI(ST_POSZ), colon()) = LaunchParameter[LP_POSZ]* ones(1, SUBDIVISIONS);
+  u1(BI(CO_THRX),colon()) = linspace(StageParameter[0][SP_THRUST], StageParameter[0][SP_THRUST], SUBDIVISIONS);
+  u1(BI(CO_THRY),colon()) = linspace(0, 0, SUBDIVISIONS);
+  u1(BI(CO_THRZ),colon()) = linspace(0, 0, SUBDIVISIONS);
+  u2(BI(CO_THRX),colon()) = linspace(0, 0, SUBDIVISIONS);
+  u2(BI(CO_THRY),colon()) = linspace(StageParameter[1][SP_THRUST], StageParameter[1][SP_THRUST], SUBDIVISIONS);
+  u2(BI(CO_THRZ),colon()) = linspace(0, 0, SUBDIVISIONS);
 
+  problem.phases(1).guess.controls = u1;
+  problem.phases(2).guess.controls = u2;
 
 
   // Start
@@ -259,7 +291,7 @@ int main(void)
   algorithm.nlp_iter_max                	= 500;
   //algorithm.mesh_refinement                   = "automatic";
   //algorithm.collocation_method = "trapezoidal";
-  algorithm.ode_tolerance			= 1.e-5;
+  algorithm.ode_tolerance			= 1.e-6;
 
   psopt(solution, problem, algorithm);
 

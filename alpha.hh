@@ -79,7 +79,7 @@ adouble norm(adouble x, adouble y, adouble z);
 adouble norm2(adouble x, adouble y, adouble z);
 adouble calc_pressure(adouble altitude, adouble p_0, adouble psh);
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac);
-adouble get_atmospheric_height();
+double get_atmospheric_height();
 
 // as global as constants can get
 
