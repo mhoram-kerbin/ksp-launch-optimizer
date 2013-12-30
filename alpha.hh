@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "setup.hh"
+
 #define BI(x) ((x)+1)
 
 #define SP_PROPELLANT 0
@@ -80,6 +82,10 @@ adouble norm2(adouble x, adouble y, adouble z);
 adouble calc_pressure(adouble altitude, adouble p_0, adouble psh);
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac);
 double get_atmospheric_height();
+
+// Constant calculations
+
+#define ATMOSPHERIC_HEIGHT -log(1 / (1000000.0 * PLANET_P_0)) * PLANET_SCALE_HEIGHT
 
 // as global as constants can get
 

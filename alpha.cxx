@@ -20,7 +20,6 @@
 
 #include "psopt.h"
 #include "alpha.hh"
-#include "setup.hh"
 
 static const double StageParameter[STAGES][SP_NUMBER] = STAGE_PARAM;
 static double LaunchParameter[LP_NUMBER];
@@ -32,8 +31,8 @@ adouble endpoint_cost(adouble* initial_states, adouble* final_states,
   if (iphase < STAGES) {
 	return 0.0;
   } else {
+	return tf;
 	return 0.0;
-	return -tf;
   }
 }
 
@@ -81,11 +80,6 @@ adouble norm(adouble x, adouble y, adouble z)
 adouble norm2(adouble x, adouble y, adouble z)
 {
   return x*x + y*y + z*z;
-}
-
-double get_atmospheric_height()
-{
-  return -log(1 / (1000000.0 * PLANET_P_0)) * PLANET_SCALE_HEIGHT;
 }
 
 adouble calc_pressure(adouble altitude, adouble p_0, adouble psh)
@@ -250,7 +244,7 @@ int main(void)
   DMatrix u1(CO_NUMBER,SUBDIVISIONS);
   DMatrix u2(CO_NUMBER,SUBDIVISIONS);
 
-  x1(BI(ST_POSX),colon()) = linspace(LaunchParameter[LP_POSX], PLANET_RADIUS + get_atmospheric_height(), SUBDIVISIONS);
+  x1(BI(ST_POSX),colon()) = linspace(LaunchParameter[LP_POSX], PLANET_RADIUS + ATMOSPHERIC_HEIGHT, SUBDIVISIONS);
   x1(BI(ST_POSY),colon()) = linspace(LaunchParameter[LP_POSY], LaunchParameter[LP_POSY], SUBDIVISIONS);
   x1(BI(ST_POSZ),colon()) = linspace(LaunchParameter[LP_POSZ], LaunchParameter[LP_POSZ], SUBDIVISIONS);
   x1(BI(ST_VELX),colon()) = linspace(LaunchParameter[LP_VELX], LaunchParameter[LP_VELX], SUBDIVISIONS);
@@ -260,8 +254,8 @@ int main(void)
 
   problem.phases(1).guess.states = x1;
 
-  x2(BI(ST_POSX),colon()) = linspace(PLANET_RADIUS + get_atmospheric_height(), PLANET_RADIUS + get_atmospheric_height(), SUBDIVISIONS);
-  x2(BI(ST_POSY),colon()) = linspace(LaunchParameter[LP_POSY], LaunchParameter[LP_POSY] + get_atmospheric_height(), SUBDIVISIONS);
+  x2(BI(ST_POSX),colon()) = linspace(PLANET_RADIUS + ATMOSPHERIC_HEIGHT, PLANET_RADIUS + ATMOSPHERIC_HEIGHT, SUBDIVISIONS);
+  x2(BI(ST_POSY),colon()) = linspace(LaunchParameter[LP_POSY], LaunchParameter[LP_POSY] + ATMOSPHERIC_HEIGHT, SUBDIVISIONS);
   x2(BI(ST_POSZ),colon()) = linspace(LaunchParameter[LP_POSZ], LaunchParameter[LP_POSZ], SUBDIVISIONS);
   x2(BI(ST_VELY),colon()) = linspace(LaunchParameter[LP_VELY], LaunchParameter[LP_VELY], SUBDIVISIONS);
   x2(BI(ST_MASS),colon()) = linspace(StageParameter[1][SP_MASS], StageParameter[1][SP_MASS] - StageParameter[1][SP_PROPELLANT], SUBDIVISIONS);
