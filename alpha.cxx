@@ -219,6 +219,7 @@ void linkages( adouble* linkages, adouble* xad)
 {
   adouble time_prev, time_next;
   adouble stat_prev[ST_NUMBER], stat_next[ST_NUMBER];
+  adouble co_prev[CO_NUMBER], co_next[CO_NUMBER];
 
   int index = 0;
   int iphase;
@@ -228,6 +229,8 @@ void linkages( adouble* linkages, adouble* xad)
 	time_next = get_initial_time(xad, iphase+1);
 	get_final_states(stat_prev, xad, iphase);
 	get_initial_states(stat_next, xad, iphase+1);
+	get_final_controls(co_prev, xad, iphase);
+	get_initial_controls(co_next, xad, iphase+1);
 
 	// time
 	linkages[index++] = time_prev - time_next;
@@ -245,6 +248,11 @@ void linkages( adouble* linkages, adouble* xad)
 	// mass
 	adouble mass_difference = StageParameter[iphase-1][SP_MASS]-StageParameter[iphase-1][SP_PROPELLANT] - StageParameter[iphase][SP_MASS];
 	linkages[index++] = stat_prev[ST_MASS]-mass_difference-stat_next[ST_MASS];
+
+	// pitch
+	adouble prev_pos[3]; prev_pos[0] = stat_prev[ST_POSX]; prev_pos[1] = stat_prev[ST_POSY]; prev_pos[2] = stat_prev[ST_POSZ];
+	adouble next_pos[3]; next_pos[0] = stat_next[ST_POSX]; next_pos[1] = stat_next[ST_POSY]; next_pos[2] = stat_next[ST_POSZ];
+	linkages[index++] = get_orientation_pitch(prev_pos, co_prev) - get_orientation_pitch(next_pos, co_next);
   }
 
 }
@@ -263,7 +271,7 @@ int main(void)
   problem.name = "KSP Launch Optimization Alpha";
   problem.outfilename = "alpha.txt";
   problem.nphases = STAGES;
-  problem.nlinkages = (STAGES - 1) * (ST_NUMBER + 1);
+  problem.nlinkages = (STAGES - 1) * (ST_NUMBER + 1 + 1);
   psopt_level1_setup(problem);
 
   // Level 2 Setup
