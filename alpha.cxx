@@ -178,6 +178,21 @@ adouble get_longitude(adouble* pos)
   return atan2(pos[ST_POSY], pos[ST_POSX]);
 }
 
+adouble get_orientation_pitch(adouble* pos, adouble* thr)
+{
+  adouble pos_norm = sqrt(dot(pos, pos, 3));
+  adouble thr_norm = sqrt(dot(thr, thr, 3));
+  pos[0] /= pos_norm;
+  pos[1] /= pos_norm;
+  pos[2] /= pos_norm;
+  thr[0] /= thr_norm;
+  thr[1] /= thr_norm;
+  thr[2] /= thr_norm;
+
+  return M_PI/2 - acos(dot(pos, thr, 3));
+
+}
+
 void events(adouble* e, adouble* initial_states, adouble* final_states,
             adouble* parameters,adouble& t0, adouble& tf, adouble* xad,
             int iphase)
@@ -411,6 +426,7 @@ int main(void)
   //DMatrix ev = DMatrix(3, cols);
   DMatrix e = DMatrix(1, cols);
   DMatrix periapsis = DMatrix(1, cols);
+  DMatrix pitch = DMatrix(1, cols);
   //  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
   for (i=1;i<=cols;i++) {
 	adouble states[6];
@@ -428,11 +444,13 @@ int main(void)
 
 	adouble p[3]; p[0] = states[ST_POSX]; p[1] = states[ST_POSY]; p[2] = states[ST_POSZ];
 	adouble v[3]; v[0] = states[ST_VELX]; v[1] = states[ST_VELY]; v[2] = states[ST_VELZ];
+	adouble thr[3]; thr[0] = u(BI(CO_THRX), i); thr[1] = u(BI(CO_THRY), i);  thr[2] = u(BI(CO_THRZ), i);
 
 	double pos_norm = sqrt(dot(p, p, 3).getValue());
 	double vel_norm = sqrt(dot(v, v, 3).getValue());
 	double a = SEMI_MAJOR(pos_norm, vel_norm);
 	periapsis(1, i) = a * (1 - e_norm);
+	pitch(1, i) = get_orientation_pitch(p, thr).getValue() / M_PI * 180;
   }
   pos = extend_dmatrix_row(pos, periapsis);
 
@@ -443,6 +461,7 @@ int main(void)
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"));
   plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"));
+  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch (deg)"));
 
 }
 

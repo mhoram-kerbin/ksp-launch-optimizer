@@ -90,6 +90,7 @@ adouble get_ground_velocity(adouble* states);
 adouble get_latitude(adouble* pos);
 adouble get_longitude(adouble* pos);
 DMatrix extend_dmatrix_row(DMatrix matrix, DMatrix row);
+adouble get_orientation_pitch(adouble* pos, adouble* thr);
 
 // as global as constants can get
 
