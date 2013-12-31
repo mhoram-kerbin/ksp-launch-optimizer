@@ -347,7 +347,7 @@ int main(void)
   problem.phases(1).bounds.lower.events(BI(E1_VELZ)) = LaunchParameter[LP_VELZ];
   problem.phases(1).bounds.upper.events(BI(E1_VELZ)) = LaunchParameter[LP_VELZ];
 
-  problem.phases(STAGES).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS + PLANET_RADIUS;
+  problem.phases(STAGES).bounds.lower.events(BI(EF_PERIAPSIS)) = PLANET_RADIUS + TARGET_PERIAPSIS;
   problem.phases(STAGES).bounds.upper.events(BI(EF_PERIAPSIS)) = PLANET_SOI;
   problem.phases(STAGES).bounds.lower.events(BI(EF_ECCENTRICITY2)) = 0;
   problem.phases(STAGES).bounds.upper.events(BI(EF_ECCENTRICITY2)) = 1000;
@@ -419,7 +419,7 @@ int main(void)
 
   DMatrix pos = x(colon(BI(ST_POSX),BI(ST_POSZ)),colon());
   DMatrix distance = Sqrt(sum(elemProduct(pos,pos)));
-  DMatrix altitude = (distance - PLANET_RADIUS) / 1000;
+  DMatrix altitude = (distance - (double)PLANET_RADIUS) / (double)1000;
   pos = extend_dmatrix_row(pos, distance);
 
   DMatrix vel = x(colon(BI(ST_VELX),BI(ST_VELZ)),colon());
@@ -463,13 +463,13 @@ int main(void)
   pos = extend_dmatrix_row(pos, periapsis);
 
 
-  plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"));
-//  plot(t,distance,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"));
-  plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"));
-  plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
+  plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri");
+  plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"), "x y z sum");
+  plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum");
   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"));
   plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"));
   plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch (deg)"));
+  plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"));
 
 }
 
