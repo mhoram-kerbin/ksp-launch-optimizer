@@ -178,18 +178,18 @@ adouble get_longitude(adouble* pos)
   return atan2(pos[ST_POSY], pos[ST_POSX]);
 }
 
-adouble get_orientation_pitch(adouble* pos, adouble* thr)
+adouble get_orientation_pitch(adouble* pos, adouble* dir)
 {
   adouble pos_norm = sqrt(dot(pos, pos, 3));
-  adouble thr_norm = sqrt(dot(thr, thr, 3));
+  adouble dir_norm = sqrt(dot(dir, dir, 3));
   pos[0] /= pos_norm;
   pos[1] /= pos_norm;
   pos[2] /= pos_norm;
-  thr[0] /= thr_norm;
-  thr[1] /= thr_norm;
-  thr[2] /= thr_norm;
+  dir[0] /= dir_norm;
+  dir[1] /= dir_norm;
+  dir[2] /= dir_norm;
 
-  return M_PI/2 - acos(dot(pos, thr, 3));
+  return M_PI/2 - acos(dot(pos, dir, 3));
 
 }
 
