@@ -68,6 +68,14 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble Fy = controls[CO_THRY] * 1000 + states[ST_VELY] * drag_factor + states[ST_POSY] * gravity_factor;
   adouble Fz = controls[CO_THRZ] * 1000 + states[ST_VELZ] * drag_factor + states[ST_POSZ] * gravity_factor;
 
+#ifdef DONT
+  adouble f[3]; f[0] = Fx; f[1] = Fy; f[2] = Fz;
+  adouble t[3]; t[0] = controls[CO_THRX] * 1000; t[1] = controls[CO_THRY] * 1000; t[2] = controls[CO_THRZ] * 1000;
+  adouble d[3]; d[0] = states[ST_VELX] * drag_factor; d[1] = states[ST_VELY] * drag_factor; d[2] = states[ST_VELZ] * drag_factor;
+  adouble g[3]; g[0] = states[ST_POSX] * gravity_factor; g[1] = states[ST_POSY] * gravity_factor; g[2] = states[ST_POSZ] * gravity_factor;
+  cout << time << "(" << iphase << ")" << " F " << sqrt(dot(f,f,3)) << " T " << sqrt(dot(t,t,3)) << " D " << sqrt(dot(d,d,3)) << " G " << sqrt(dot(g,g,3)) << " P " << distance << " V " << vel_norm << "/" << gv << endl;
+#endif
+
   derivatives[ST_VELX] = Fx / states[ST_MASS];
   derivatives[ST_VELY] = Fy / states[ST_MASS];
   derivatives[ST_VELZ] = Fz / states[ST_MASS];
@@ -256,6 +264,13 @@ void linkages( adouble* linkages, adouble* xad)
   }
 
 }
+
+//void myplot(DMatrix x, DMatrix y, string name, string xt, string yt, string coord=NULL, string filename)
+//{
+//  plot(x, y, name, const_cast<char *>(xt), const_cast<char *>(yt), const_cast<char *>(coord));
+//  plot(x, y, name, const_cast<char *>(xt), const_cast<char *>(yt), coord, "Png", filename + "-alpha.png");
+//
+//}
 
 
 int main(void)
@@ -471,6 +486,15 @@ int main(void)
   plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch (deg)"));
   plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"));
 
+  plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri", "png", "pos-alpha.png");
+  plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"), "x y z sum", "png", "vel-alpha.png");
+  plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum", "png", "u-alpha.png");
+  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), NULL, "png", "mass-alpha.png");
+  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), NULL, "png", "e-alpha.png");
+  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch (deg)"), NULL, "png", "pitch-alpha.png");
+  plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"), NULL, "png", "altitude-alpha.png");
+
+  //myplot(t, pos, problem.name, "AAAAAA time(s)", "Position (km)", "x y z sum peri");
 }
 
 DMatrix extend_dmatrix_row(DMatrix matrix, DMatrix row)

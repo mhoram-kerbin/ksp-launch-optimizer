@@ -12,6 +12,7 @@
 /mesh_statistics_*.tex
 /*.txt
 /*.dat
+/*.png
 *~
 /launch
 /simple
