@@ -50,11 +50,11 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   // Distance Path
 
   adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
-  adouble pos_norm2 = dot(pos, pos, 3);
-  path[PA_DISTANCE] = pos_norm2;
+  path[PA_DISTANCE] = dot(pos, pos, 3);
 
   // Velocity derivatives
-  adouble altitude = sqrt(pos_norm2) - PLANET_RADIUS;
+  adouble distance = sqrt(path[PA_DISTANCE]);
+  adouble altitude = distance - PLANET_RADIUS;
   adouble pressure = calc_pressure(altitude);
   adouble density = pressure * CONVERSION_FACTOR;
   adouble gv = get_ground_velocity(states);
@@ -62,9 +62,11 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble vel_norm = sqrt( dot(vel, vel, 3) );
   adouble drag_factor = - 0.5 * density * gv * gv * StageParameter[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] / vel_norm;
 
-  adouble Fx = controls[CO_THRX] * 1000 + states[ST_VELX] * drag_factor;
-  adouble Fy = controls[CO_THRY] * 1000 + states[ST_VELY] * drag_factor;
-  adouble Fz = controls[CO_THRZ] * 1000 + states[ST_VELZ] * drag_factor;
+  adouble gravity_factor = states[ST_MASS] * PLANET_MU / (path[PA_DISTANCE] * distance);
+
+  adouble Fx = controls[CO_THRX] * 1000 + states[ST_VELX] * drag_factor + states[ST_POSX] * gravity_factor;
+  adouble Fy = controls[CO_THRY] * 1000 + states[ST_VELY] * drag_factor + states[ST_POSY] * gravity_factor;
+  adouble Fz = controls[CO_THRZ] * 1000 + states[ST_VELZ] * drag_factor + states[ST_POSZ] * gravity_factor;
 
   derivatives[ST_VELX] = Fx / states[ST_MASS];
   derivatives[ST_VELY] = Fy / states[ST_MASS];
@@ -292,8 +294,8 @@ int main(void)
 	problem.phases(iphase).bounds.upper.controls(BI(CO_THRZ)) =  StageParameter[iphase-1][SP_THRUST];
 
 	// Path Constraints
-	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = (double)PLANET_RADIUS * PLANET_RADIUS;
-	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI * PLANET_SOI;
+	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = (double)PLANET_RADIUS * (double)PLANET_RADIUS;
+	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI    * (double)PLANET_SOI;
 	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;
 	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY)) = 0;
