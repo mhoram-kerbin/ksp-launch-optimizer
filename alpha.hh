@@ -60,17 +60,19 @@
 #define CO_THRZ   2
 #define CO_NUMBER 3
 
-#define EN_NUMBER (0)
+#define EN_NUMBER       (0)
 
-#define E1_POSX   (0 + EN_NUMBER)
-#define E1_POSY   (1 + EN_NUMBER)
-#define E1_POSZ   (2 + EN_NUMBER)
-#define E1_VELX   (3 + EN_NUMBER)
-#define E1_VELY   (4 + EN_NUMBER)
-#define E1_VELZ   (5 + EN_NUMBER)
-#define E1_NUMBER (6 + EN_NUMBER)
+#define E1_POSX         (0 + EN_NUMBER)
+#define E1_POSY         (1 + EN_NUMBER)
+#define E1_POSZ         (2 + EN_NUMBER)
+#define E1_VELX         (3 + EN_NUMBER)
+#define E1_VELY         (4 + EN_NUMBER)
+#define E1_VELZ         (5 + EN_NUMBER)
+#define E1_NUMBER       (6 + EN_NUMBER)
 
-#define EF_NUMBER (0 + EN_NUMBER)
+#define EF_PERIAPSIS    (0 + EN_NUMBER)
+#define EF_ECCENTRICITY (1 + EN_NUMBER)
+#define EF_NUMBER       (2 + EN_NUMBER)
 
 void init_launch_parameters();
 void setup_state_constraints(Prob problem, int iphase);

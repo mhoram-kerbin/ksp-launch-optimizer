@@ -32,7 +32,7 @@ adouble endpoint_cost(adouble* initial_states, adouble* final_states,
 	return 0.0;
   } else {
 	//	return -norm2(final_states[ST_POSX], final_states[ST_POSY], final_states[ST_POSZ]);
-	return -get_periapsis(final_states);
+	return -final_states[ST_MASS];
 	return tf;
 	return 0.0;
   }
@@ -62,7 +62,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble vel_norm = sqrt( dot(vel, vel, 3) );
   adouble drag_factor = - 0.5 * density * gv * gv * StageParameter[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] / vel_norm;
 
-  adouble gravity_factor = states[ST_MASS] * PLANET_MU / (path[PA_DISTANCE] * distance);
+  adouble gravity_factor = - states[ST_MASS] * PLANET_MU / (path[PA_DISTANCE] * distance);
 
   adouble Fx = controls[CO_THRX] * 1000 + states[ST_VELX] * drag_factor + states[ST_POSX] * gravity_factor;
   adouble Fy = controls[CO_THRY] * 1000 + states[ST_VELY] * drag_factor + states[ST_POSY] * gravity_factor;
@@ -192,6 +192,12 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
 	//	cout << "E " << e[E1_POSX] << " " << e[E1_POSY] << " " << e[E1_POSZ] << endl;
 	//	cout << "E " << e[E1_VELX] << " " << e[E1_VELY] << " " << e[E1_VELZ] << endl;
   }
+  if (iphase == STAGES) {
+	adouble ev[3];
+	get_eccentricity_vector(final_states, ev);
+	e[EF_ECCENTRICITY] = dot(ev, ev, 3);
+	e[EF_PERIAPSIS]    = get_periapsis(final_states);
+  }
 }
 
 void linkages( adouble* linkages, adouble* xad)
@@ -299,7 +305,7 @@ int main(void)
 	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;
 	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY)) = 0;
-	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY)) = 1;
+	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY)) = 0.99;
 
   }
 
@@ -317,6 +323,11 @@ int main(void)
   problem.phases(1).bounds.upper.events(BI(E1_VELY)) = LaunchParameter[LP_VELY];
   problem.phases(1).bounds.lower.events(BI(E1_VELZ)) = LaunchParameter[LP_VELZ];
   problem.phases(1).bounds.upper.events(BI(E1_VELZ)) = LaunchParameter[LP_VELZ];
+
+  problem.phases(STAGES).bounds.lower.events(BI(EF_PERIAPSIS)) = TARGET_PERIAPSIS + PLANET_RADIUS;
+  problem.phases(STAGES).bounds.upper.events(BI(EF_PERIAPSIS)) = PLANET_SOI;
+  problem.phases(STAGES).bounds.lower.events(BI(EF_ECCENTRICITY)) = 0;
+  problem.phases(STAGES).bounds.upper.events(BI(EF_ECCENTRICITY)) = 0.25;
 
   setup_time_constraints(problem);
   setup_linkage_constraints(problem);
@@ -431,7 +442,7 @@ int main(void)
   plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"));
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"));
   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"));
-  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Excentricity"));
+  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"));
 
 }
 
