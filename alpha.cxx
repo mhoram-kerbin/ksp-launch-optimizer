@@ -210,8 +210,8 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
   if (iphase == STAGES) {
 	adouble ev[3];
 	get_eccentricity_vector(final_states, ev);
-	e[EF_ECCENTRICITY2] = dot(ev, ev, 3);
 	e[EF_PERIAPSIS]    = get_periapsis(final_states);
+	e[EF_ECCENTRICITY2] = dot(ev, ev, 3);
   }
 }
 
