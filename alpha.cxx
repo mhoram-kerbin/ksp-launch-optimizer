@@ -306,7 +306,7 @@ int main(void)
 	problem.phases(iphase).bounds.lower.states(BI(ST_MASS)) = StageParameter[iphase-1][SP_MASS] - StageParameter[iphase-1][SP_PROPELLANT];
 	problem.phases(iphase).bounds.upper.states(BI(ST_MASS)) = StageParameter[iphase-1][SP_MASS];
 
-	// Cotnrol Constraints
+	// Control Constraints
 	problem.phases(iphase).bounds.lower.controls(BI(CO_THRX)) = -StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.upper.controls(BI(CO_THRX)) =  StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.lower.controls(BI(CO_THRY)) = -StageParameter[iphase-1][SP_THRUST];
@@ -486,7 +486,7 @@ void init_launch_parameters()
   LaunchParameter[LP_VELY] =  cos(LAUNCH_LONGITUDE) * f;
   LaunchParameter[LP_VELZ] = 0;
 
-  cout << "LAUNCH " << LAUNCH_LATITUDE << " " << LAUNCH_LONGITUDE << " " << LaunchParameter[LP_POSX] << " " << LaunchParameter[LP_POSY] << " " << LaunchParameter[LP_POSZ] << " | " << LaunchParameter[LP_VELX] << " " << LaunchParameter[LP_VELY] << " " << LaunchParameter[LP_VELZ] << endl;
+  //cout << "LAUNCH " << LAUNCH_LATITUDE << " " << LAUNCH_LONGITUDE << " " << LaunchParameter[LP_POSX] << " " << LaunchParameter[LP_POSY] << " " << LaunchParameter[LP_POSZ] << " | " << LaunchParameter[LP_VELX] << " " << LaunchParameter[LP_VELY] << " " << LaunchParameter[LP_VELZ] << endl;
 
 }
 
