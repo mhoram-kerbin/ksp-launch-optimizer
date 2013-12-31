@@ -108,13 +108,15 @@ adouble get_periapsis(adouble* states)
 	cross(v, h, ev);
 	adouble pos_norm = norm(states[ST_POSX], states[ST_POSY], states[ST_POSZ]);
 	adouble mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+	adouble vel_norm = sqrt( dot(v, v, 3) );
 
 	ev[0] = ev[0] / mu - p[0] / pos_norm;
 	ev[1] = ev[1] / mu - p[1] / pos_norm;
 	ev[2] = ev[2] / mu - p[2] / pos_norm;
 	adouble e_norm = sqrt(dot(ev, ev, 3));
 
-	adouble a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
+	adouble a = 1 / (2 / pos_norm - vel_norm * vel_norm / mu);
+	//a = 1 / (2 / pos_norm - 2 * pos_norm / mu);
 
   return a * (1 - e_norm);
 }
@@ -348,7 +350,7 @@ int main(void)
   algorithm.nlp_method                  	= "IPOPT";
   algorithm.scaling                     	= "automatic";
   algorithm.derivatives                 	= "automatic";
-  algorithm.nlp_iter_max                	= 5000;
+  //algorithm.nlp_iter_max                	= NLP_MAX_ITER;
   //algorithm.nlp_tolerance = 1.e-4;
   //algorithm.mesh_refinement                   = "automatic";
   //algorithm.collocation_method = "trapezoidal";

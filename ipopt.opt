@@ -1,2 +1,2 @@
 #linear_solver ma57
-max_iter 3
+max_iter 1000
