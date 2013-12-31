@@ -47,28 +47,34 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   derivatives[ST_POSY] = states[ST_VELY];
   derivatives[ST_POSZ] = states[ST_VELZ];
 
-  // Velocity derivatives
-  adouble Fx = controls[CO_THRX] * 1000;
-  adouble Fy = controls[CO_THRY] * 1000;
-  adouble Fz = controls[CO_THRZ] * 1000;
-
-  derivatives[ST_VELX] = Fx / states[ST_MASS];
-  derivatives[ST_VELY] = Fy / states[ST_MASS];
-  derivatives[ST_VELZ] = Fz / states[ST_MASS];
-
   // Distance Path
 
   adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
   adouble pos_norm2 = dot(pos, pos, 3);
   path[PA_DISTANCE] = pos_norm2;
 
+  // Velocity derivatives
+  adouble altitude = sqrt(pos_norm2) - PLANET_RADIUS;
+  adouble pressure = calc_pressure(altitude);
+  adouble density = pressure * CONVERSION_FACTOR;
+  adouble gv = get_ground_velocity(states);
+  adouble vel[3]; vel[0] = states[ST_VELX]; vel[1] = states[ST_VELY]; vel[2] = states[ST_VELZ];
+  adouble vel_norm = sqrt( dot(vel, vel, 3) );
+  adouble drag_factor = - 0.5 * density * gv * gv * StageParameter[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] / vel_norm;
+
+  adouble Fx = controls[CO_THRX] * 1000 + states[ST_VELX] * drag_factor;
+  adouble Fy = controls[CO_THRY] * 1000 + states[ST_VELY] * drag_factor;
+  adouble Fz = controls[CO_THRZ] * 1000 + states[ST_VELZ] * drag_factor;
+
+  derivatives[ST_VELX] = Fx / states[ST_MASS];
+  derivatives[ST_VELY] = Fy / states[ST_MASS];
+  derivatives[ST_VELZ] = Fz / states[ST_MASS];
+
   // Thrust Path
   adouble thrust_norm2 = norm2(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
   path[PA_THRUST] = thrust_norm2;
 
   // Mass Derivative
-  adouble altitude = sqrt(pos_norm2) - PLANET_RADIUS;
-  adouble pressure = calc_pressure(altitude);
   adouble isp = get_isp(pressure, StageParameter[iphase-1][SP_ISP_0],
 						StageParameter[iphase-1][SP_ISP_VAC]);
   derivatives[ST_MASS] = -sqrt(thrust_norm2) / (isp * G_0) * 1000;
