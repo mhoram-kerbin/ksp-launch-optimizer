@@ -72,6 +72,12 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble isp = get_isp(pressure, StageParameter[iphase-1][SP_ISP_0],
 						StageParameter[iphase-1][SP_ISP_VAC]);
   derivatives[ST_MASS] = -sqrt(thrust_norm2) / (isp * G_0) * 1000;
+
+  // Eccentricity Path
+
+  adouble ev[3];
+  get_eccentricity_vector(states, ev);
+  path[PA_ECCENTRICITY] = dot(ev, ev, 3);
 }
 
 adouble norm(adouble x, adouble y, adouble z)
@@ -284,6 +290,8 @@ int main(void)
 	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI * PLANET_SOI;
 	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;
 	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
+	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY)) = 0;
+	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY)) = 1;
 
   }
 
