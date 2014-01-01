@@ -57,16 +57,22 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   adouble altitude = distance - PLANET_RADIUS;
   adouble pressure = calc_pressure(altitude);
   adouble density = pressure * CONVERSION_FACTOR;
-  adouble gv = get_ground_velocity(states);
+  adouble gvv[3];
+  calc_ground_velocity_vector(states, gvv);
+  adouble gv = sqrt(dot (gvv,gvv,3));
   adouble vel[3]; vel[0] = states[ST_VELX]; vel[1] = states[ST_VELY]; vel[2] = states[ST_VELZ];
   adouble vel_norm = sqrt( dot(vel, vel, 3) );
-  adouble drag_factor = - 0.5 * density * gv * gv * StageParameter[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] / vel_norm;
+
+  adouble drag_factor = - 0.5 * density * StageParameter[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] * gv;
 
   adouble gravity_factor = - states[ST_MASS] * PLANET_MU / (path[PA_DISTANCE] * distance);
 
-  adouble Fx = controls[CO_THRX] * 1000 + states[ST_VELX] * drag_factor + states[ST_POSX] * gravity_factor;
-  adouble Fy = controls[CO_THRY] * 1000 + states[ST_VELY] * drag_factor + states[ST_POSY] * gravity_factor;
-  adouble Fz = controls[CO_THRZ] * 1000 + states[ST_VELZ] * drag_factor + states[ST_POSZ] * gravity_factor;
+  // the factor 1000 for thrust is caused by the conversion from kN to N
+  adouble thrust_factor = 1000;
+
+  adouble Fx = controls[CO_THRX] * thrust_factor + gvv[0] * drag_factor + states[ST_POSX] * gravity_factor;
+  adouble Fy = controls[CO_THRY] * thrust_factor + gvv[1] * drag_factor + states[ST_POSY] * gravity_factor;
+  adouble Fz = controls[CO_THRZ] * thrust_factor + gvv[2] * drag_factor + states[ST_POSZ] * gravity_factor;
 
 #ifdef DONT
   adouble f[3]; f[0] = Fx; f[1] = Fy; f[2] = Fz;

@@ -91,6 +91,7 @@ adouble get_latitude(adouble* pos);
 adouble get_longitude(adouble* pos);
 DMatrix extend_dmatrix_row(DMatrix matrix, DMatrix row);
 adouble get_orientation_pitch(adouble* pos, adouble* dir);
+void calc_ground_velocity_vector(adouble* states, adouble* gvv);
 //void myplot(DMatrix x, DMatrix y, string name, string xt, string yt, string coord=NULL, string filename);
 
 // as global as constants can get
