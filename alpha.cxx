@@ -98,7 +98,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   // Eccentricity Path
 
   adouble ev[3];
-  get_eccentricity_vector(states, ev);
+  calc_eccentricity_vector(states, ev);
   path[PA_ECCENTRICITY2] = dot(ev, ev, 3);
 }
 
@@ -149,7 +149,7 @@ adouble get_periapsis(adouble* states)
   return a * (1 - e_norm);
 }
 
-void get_eccentricity_vector(adouble* states, adouble* ev)
+void calc_eccentricity_vector(adouble* states, adouble* ev)
 {
   adouble p[3]; p[0] = states[ST_POSX]; p[1] = states[ST_POSY]; p[2] = states[ST_POSZ];
   adouble v[3]; v[0] = states[ST_VELX]; v[1] = states[ST_VELY]; v[2] = states[ST_VELZ];
@@ -220,7 +220,7 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
   }
   if (iphase == STAGES) {
 	adouble ev[3];
-	get_eccentricity_vector(final_states, ev);
+	calc_eccentricity_vector(final_states, ev);
 	e[EF_PERIAPSIS]    = get_periapsis(final_states);
 	e[EF_ECCENTRICITY2] = dot(ev, ev, 3);
   }
@@ -343,7 +343,7 @@ int main(void)
 	// Path Constraints
 	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE2)) = (double)PLANET_RADIUS * (double)PLANET_RADIUS;
 	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE2)) = (double)PLANET_SOI    * (double)PLANET_SOI;
-	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST2)) = 1;//StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST] * 0.1 * 0.1;
+	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST2)) = 0;//StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST] * 0.1 * 0.1;
 	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST2)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY2)) = 0 * 0;
 	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY2)) = 0.995 * 0.995;
@@ -464,7 +464,7 @@ int main(void)
 	states[ST_VELZ] = vel(3,i);
 
 	adouble ev[3];
-	get_eccentricity_vector(states, ev);
+	calc_eccentricity_vector(states, ev);
 	double e_norm = sqrt(dot(ev, ev, 3).getValue());
 	e(1, i) = e_norm;
 

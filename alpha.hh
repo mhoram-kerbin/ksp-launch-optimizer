@@ -85,7 +85,7 @@ adouble norm2(adouble x, adouble y, adouble z);
 adouble calc_pressure(adouble altitude);
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac);
 adouble get_periapsis(adouble* states);
-void get_eccentricity_vector(adouble* states, adouble* ev);
+void calc_eccentricity_vector(adouble* states, adouble* ev);
 adouble get_latitude(adouble* pos);
 adouble get_longitude(adouble* pos);
 DMatrix extend_dmatrix_row(DMatrix matrix, DMatrix row);
