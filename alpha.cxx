@@ -477,10 +477,10 @@ int main(void)
 	double a = SEMI_MAJOR(pos_norm, vel_norm);
 	periapsis(1, i) = a * (1 - e_norm);
 	pitch(1, i) = get_orientation_pitch(p, thr).getValue() / M_PI * 180;
-	pitch(2, i) = get_orientation_pitch(p, v).getValue() / M_PI * 180;
-    adouble gvv[3];
+	adouble gvv[3];
 	calc_ground_velocity_vector(states, gvv);
-	pitch(3, i) = get_orientation_pitch(p, gvv).getValue() / M_PI * 180;
+	pitch(2, i) = get_orientation_pitch(p, gvv).getValue() / M_PI * 180;
+	pitch(3, i) = get_orientation_pitch(p, v).getValue() / M_PI * 180;
   }
   pos = extend_dmatrix_row(pos, periapsis);
 
@@ -490,7 +490,7 @@ int main(void)
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum");
   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), "mass");
   plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), "ecc");
-  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, velocity and ground velocity (deg)"), "thr vel gro");
+  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, ground velocity and velocity (deg)"), "thr vel gro");
   plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"));
 
   plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri", "png", "pos-alpha.png");
@@ -498,7 +498,7 @@ int main(void)
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum", "png", "u-alpha.png");
   plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), "mass", "png", "mass-alpha.png");
   plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), "ecc", "png", "e-alpha.png");
-  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, velocity and ground velocity (deg)"), "thr vel gro", "png", "pitch-alpha.png");
+  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, ground velocity and velocity (deg)"), "thr vel gro", "png", "pitch-alpha.png");
   plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"), NULL, "png", "altitude-alpha.png");
 
   //myplot(t, pos, problem.name, "AAAAAA time(s)", "Position (km)", "x y z sum peri");
