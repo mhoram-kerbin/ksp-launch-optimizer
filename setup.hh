@@ -46,7 +46,7 @@
 // STAGE_PARAM contains an array of array of doubles
 // the first array contains information about the first stage
 //
-// The elements of the inner arrays containf the following information
+// The elements of the inner arrays contain the following information
 // 1. mass of fuel in kg
 // 2. total mass of ship at begin of the stage in kg
 // 3. thrust of the engines in kN

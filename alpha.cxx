@@ -158,6 +158,21 @@ void get_eccentricity_vector(adouble* states, adouble* ev)
 
 }
 
+void calc_ground_velocity_vector(adouble* states, adouble* gvv)
+{
+  adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
+  adouble pos_norm = sqrt(dot(pos, pos, 3));
+  adouble latitude = get_latitude(pos);
+  adouble longitude = get_longitude(pos);
+
+  adouble factor = pos_norm * 2 * M_PI * cos(latitude) / PLANET_ROT_PER;
+
+  gvv[0] = states[ST_VELX] + sin(longitude) * factor;
+  gvv[1] = states[ST_VELY] - cos(longitude) * factor;
+  gvv[2] = states[ST_VELZ];
+
+}
+
 adouble get_ground_velocity(adouble* states)
 {
   adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
@@ -340,7 +355,7 @@ int main(void)
 	// Path Constraints
 	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = (double)PLANET_RADIUS * (double)PLANET_RADIUS;
 	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI    * (double)PLANET_SOI;
-	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;
+	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;//StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST] * 0.1 * 0.1;
 	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
 	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY)) = 0 * 0;
 	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY)) = 0.995 * 0.995;
@@ -449,7 +464,7 @@ int main(void)
   //DMatrix ev = DMatrix(3, cols);
   DMatrix e = DMatrix(1, cols);
   DMatrix periapsis = DMatrix(1, cols);
-  DMatrix pitch = DMatrix(1, cols);
+  DMatrix pitch = DMatrix(3, cols);
   //  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
   for (i=1;i<=cols;i++) {
 	adouble states[6];
@@ -474,6 +489,10 @@ int main(void)
 	double a = SEMI_MAJOR(pos_norm, vel_norm);
 	periapsis(1, i) = a * (1 - e_norm);
 	pitch(1, i) = get_orientation_pitch(p, thr).getValue() / M_PI * 180;
+	pitch(2, i) = get_orientation_pitch(p, v).getValue() / M_PI * 180;
+    adouble gvv[3];
+	calc_ground_velocity_vector(states, gvv);
+	pitch(3, i) = get_orientation_pitch(p, gvv).getValue() / M_PI * 180;
   }
   pos = extend_dmatrix_row(pos, periapsis);
 
@@ -481,17 +500,17 @@ int main(void)
   plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri");
   plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"), "x y z sum");
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum");
-  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"));
-  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"));
-  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch (deg)"));
+  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), "mass");
+  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), "ecc");
+  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, velocity and ground velocity (deg)"), "thr vel gro");
   plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"));
 
   plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri", "png", "pos-alpha.png");
   plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"), "x y z sum", "png", "vel-alpha.png");
   plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum", "png", "u-alpha.png");
-  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), NULL, "png", "mass-alpha.png");
-  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), NULL, "png", "e-alpha.png");
-  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch (deg)"), NULL, "png", "pitch-alpha.png");
+  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), "mass", "png", "mass-alpha.png");
+  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), "ecc", "png", "e-alpha.png");
+  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, velocity and ground velocity (deg)"), "thr vel gro", "png", "pitch-alpha.png");
   plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"), NULL, "png", "altitude-alpha.png");
 
   //myplot(t, pos, problem.name, "AAAAAA time(s)", "Position (km)", "x y z sum peri");
