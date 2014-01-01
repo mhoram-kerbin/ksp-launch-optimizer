@@ -179,24 +179,6 @@ void calc_ground_velocity_vector(adouble* states, adouble* gvv)
 
 }
 
-adouble get_ground_velocity(adouble* states)
-{
-  adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
-  adouble gv[3]; gv[0] = states[ST_VELX]; gv[1] = states[ST_VELY]; gv[2] = states[ST_VELZ];
-  adouble pos_norm = sqrt(dot(pos, pos, 3));
-
-  adouble latitude = get_latitude(pos);
-  adouble longitude = get_longitude(pos);
-
-  adouble factor = pos_norm * 2 * M_PI * cos(latitude) / PLANET_ROT_PER;
-
-  gv[0] -= -sin(longitude) * factor;
-  gv[1] -=  cos(longitude) * factor;
-  gv[2] -= 0;
-
-  return sqrt( dot(gv, gv, 3) );
-}
-
 adouble get_latitude(adouble* pos)
 {
   return atan2(pos[ST_POSZ], sqrt(pos[ST_POSX] * pos[ST_POSX] + pos[ST_POSY] * pos[ST_POSY]));
