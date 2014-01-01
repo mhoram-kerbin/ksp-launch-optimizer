@@ -3,8 +3,8 @@ all: alpha ksp-launch-optimizer.pdf
 include ../Makefile_linux.inc
 
 
-c: clean
-	rm -f *.pdf *.dat *.txt gnuplot.scp *.out launch simple mesh_statistics_launch.tex *.tap
+clean:
+	rm -f *.o *.pdf *.dat *.txt gnuplot.scp *.out simple mesh_statistics_*.tex *.tap *.png *.dat launch alpha
 
 KD = $(USERHOME)/ksp-physics-documentation/src/
 KAPRI = -I$(KD) $(KD)Cartesian.o $(KD)Engine.o $(KD)Planet.o $(KD)Vector.o
