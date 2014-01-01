@@ -455,7 +455,7 @@ int main(void)
   //DMatrix ev = DMatrix(3, cols);
   DMatrix e = DMatrix(1, cols);
   DMatrix periapsis = DMatrix(1, cols);
-  DMatrix pitch = DMatrix(3, cols);
+  DMatrix pitch = DMatrix(4, cols);
   //  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
   for (i=1;i<=cols;i++) {
 	adouble states[6];
@@ -484,6 +484,9 @@ int main(void)
 	calc_ground_velocity_vector(states, gvv);
 	pitch(2, i) = get_orientation_pitch(p, gvv).getValue() / M_PI * 180;
 	pitch(3, i) = get_orientation_pitch(p, v).getValue() / M_PI * 180;
+	int stage = static_cast<int>(ceil((double)i * STAGES / cols));
+	pitch(4, i) = u(4, i) / StageParameter[stage-1][SP_THRUST] * 100;
+	//	cout << StageParameter[stage-1][SP_THRUST] << endl;
   }
   pos = extend_dmatrix_row(pos, periapsis);
 
@@ -495,7 +498,7 @@ int main(void)
   plot(t,u,problem.name, t_str, CC("Thrust (kN)"), CC("x y z sum"));
   plot(t,mass,problem.name, t_str, CC("Mass (kg)"), CC("mass"));
   plot(t,e,problem.name, t_str, CC("Eccentricity"), CC("ecc"));
-  plot(t,pitch,problem.name, t_str, CC("Pitch of thrust, ground velocity and velocity (deg)"), CC("thr grv vel"));
+  plot(t,pitch,problem.name, t_str, CC("Pitch (deg) & Thrust (%)"), CC("thr grv vel thr"));
   plot(t,altitude,problem.name, t_str, CC("Altitude (km)"));
 
   plot(t,pos,problem.name, t_str, CC("Position (km)"), CC("x y z sum peri"), p_str, CC("pos-alpha.png"));
@@ -503,7 +506,7 @@ int main(void)
   plot(t,u,problem.name, t_str, CC("Thrust (kN)"), CC("x y z sum"), p_str, CC("u-alpha.png"));
   plot(t,mass,problem.name, t_str, CC("Mass (kg)"), CC("mass"), p_str, CC("mass-alpha.png"));
   plot(t,e,problem.name, t_str, CC("Eccentricity"), CC("ecc"), p_str, CC("e-alpha.png"));
-  plot(t,pitch,problem.name, t_str, CC("Pitch of thrust, ground velocity and velocity (deg)"), CC("thr grv vel"), p_str, CC("pitch-alpha.png"));
+  plot(t,pitch,problem.name, t_str, CC("Pitch (deg) & Thrust (%)"), CC("thr grv vel thr"), p_str, CC("pitch-alpha.png"));
   plot(t,altitude,problem.name, t_str, CC("Altitude (km)"), NULL, p_str, CC("altitude-alpha.png"));
 
   //myplot(t, pos, problem.name, "AAAAAA time(s)", "Position (km)", "x y z sum peri");
