@@ -50,10 +50,10 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
   // Distance Path
 
   adouble pos[3]; pos[0] = states[ST_POSX]; pos[1] = states[ST_POSY]; pos[2] = states[ST_POSZ];
-  path[PA_DISTANCE] = dot(pos, pos, 3);
+  path[PA_DISTANCE2] = dot(pos, pos, 3);
 
   // Velocity derivatives
-  adouble distance = sqrt(path[PA_DISTANCE]);
+  adouble distance = sqrt(path[PA_DISTANCE2]);
   adouble altitude = distance - PLANET_RADIUS;
   adouble pressure = calc_pressure(altitude);
   adouble density = pressure * CONVERSION_FACTOR;
@@ -65,7 +65,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
   adouble drag_factor = - 0.5 * density * StageParameter[iphase-1][SP_DRAG_COEFFICIENT] * 0.008 * states[ST_MASS] * gv;
 
-  adouble gravity_factor = - states[ST_MASS] * PLANET_MU / (path[PA_DISTANCE] * distance);
+  adouble gravity_factor = - states[ST_MASS] * PLANET_MU / (path[PA_DISTANCE2] * distance);
 
   // the factor 1000 for thrust is caused by the conversion from kN to N
   adouble thrust_factor = 1000;
@@ -88,7 +88,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
   // Thrust Path
   adouble thrust_norm2 = norm2(controls[CO_THRX], controls[CO_THRY], controls[CO_THRZ]);
-  path[PA_THRUST] = thrust_norm2;
+  path[PA_THRUST2] = thrust_norm2;
 
   // Mass Derivative
   adouble isp = get_isp(pressure, StageParameter[iphase-1][SP_ISP_0],
@@ -99,7 +99,7 @@ void dae(adouble* derivatives, adouble* path, adouble* states,
 
   adouble ev[3];
   get_eccentricity_vector(states, ev);
-  path[PA_ECCENTRICITY] = dot(ev, ev, 3);
+  path[PA_ECCENTRICITY2] = dot(ev, ev, 3);
 }
 
 adouble norm(adouble x, adouble y, adouble z)
@@ -341,12 +341,12 @@ int main(void)
 	problem.phases(iphase).bounds.upper.controls(BI(CO_THRZ)) =  StageParameter[iphase-1][SP_THRUST];
 
 	// Path Constraints
-	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE)) = (double)PLANET_RADIUS * (double)PLANET_RADIUS;
-	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE)) = (double)PLANET_SOI    * (double)PLANET_SOI;
-	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST)) = 1;//StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST] * 0.1 * 0.1;
-	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
-	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY)) = 0 * 0;
-	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY)) = 0.995 * 0.995;
+	problem.phases(iphase).bounds.lower.path(BI(PA_DISTANCE2)) = (double)PLANET_RADIUS * (double)PLANET_RADIUS;
+	problem.phases(iphase).bounds.upper.path(BI(PA_DISTANCE2)) = (double)PLANET_SOI    * (double)PLANET_SOI;
+	problem.phases(iphase).bounds.lower.path(BI(PA_THRUST2)) = 1;//StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST] * 0.1 * 0.1;
+	problem.phases(iphase).bounds.upper.path(BI(PA_THRUST2)) = StageParameter[iphase-1][SP_THRUST] * StageParameter[iphase-1][SP_THRUST];
+	problem.phases(iphase).bounds.lower.path(BI(PA_ECCENTRICITY2)) = 0 * 0;
+	problem.phases(iphase).bounds.upper.path(BI(PA_ECCENTRICITY2)) = 0.995 * 0.995;
 
   }
 

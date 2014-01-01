@@ -50,10 +50,10 @@
 #define ST_MASS   6
 #define ST_NUMBER 7
 
-#define PA_DISTANCE     0
-#define PA_THRUST       1
-#define PA_ECCENTRICITY 2
-#define PA_NUMBER       3
+#define PA_DISTANCE2     0
+#define PA_THRUST2       1
+#define PA_ECCENTRICITY2 2
+#define PA_NUMBER        3
 
 #define CO_THRX   0
 #define CO_THRY   1
