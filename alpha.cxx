@@ -418,7 +418,7 @@ int main(void)
   algorithm.nlp_method                  	= "IPOPT";
   algorithm.scaling                     	= "automatic";
   algorithm.derivatives                 	= "automatic";
-  //algorithm.nlp_iter_max                	= NLP_MAX_ITER;
+  algorithm.nlp_iter_max                	= NLP_MAX_ITER;
   //algorithm.nlp_tolerance = 1.e-4;
   //algorithm.mesh_refinement                   = "automatic";
   //algorithm.collocation_method = "trapezoidal";
