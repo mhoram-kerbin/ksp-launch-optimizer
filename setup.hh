@@ -26,7 +26,7 @@
 
 #define SUBDIVISIONS 10
 #define NODES "[10, 40]"
-#define NLP_MAX_ITER 10
+#define NLP_MAX_ITER 500
 
 // PROBLEM Configuration
 

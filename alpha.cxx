@@ -220,9 +220,9 @@ void events(adouble* e, adouble* initial_states, adouble* final_states,
   }
   if (iphase == STAGES) {
 	e[EF_DISTANCE2] = norm2(final_states[ST_POSX], final_states[ST_POSY], final_states[ST_POSZ]);
+	e[EF_PERIAPSIS]    = get_periapsis(final_states);
 	adouble ev[3];
 	calc_eccentricity_vector(final_states, ev);
-	e[EF_PERIAPSIS]    = get_periapsis(final_states);
 	e[EF_ECCENTRICITY2] = dot(ev, ev, 3);
   }
 }
@@ -369,9 +369,9 @@ int main(void)
   problem.phases(STAGES).bounds.lower.events(BI(EF_DISTANCE2)) = (double)(PLANET_RADIUS + TARGET_PERIAPSIS) * (double)(PLANET_RADIUS + TARGET_PERIAPSIS);
   problem.phases(STAGES).bounds.upper.events(BI(EF_DISTANCE2)) = (double)PLANET_SOI * (double)PLANET_SOI;
   problem.phases(STAGES).bounds.lower.events(BI(EF_PERIAPSIS)) = PLANET_RADIUS + TARGET_PERIAPSIS;
-  problem.phases(STAGES).bounds.upper.events(BI(EF_PERIAPSIS)) = PLANET_SOI;
+  problem.phases(STAGES).bounds.upper.events(BI(EF_PERIAPSIS)) = PLANET_RADIUS + TARGET_PERIAPSIS;//PLANET_SOI;
   problem.phases(STAGES).bounds.lower.events(BI(EF_ECCENTRICITY2)) = 0;
-  problem.phases(STAGES).bounds.upper.events(BI(EF_ECCENTRICITY2)) = 1000;
+  problem.phases(STAGES).bounds.upper.events(BI(EF_ECCENTRICITY2)) = 0.01 * 0.01;//1000;
 
   setup_time_constraints(problem);
   setup_linkage_constraints(problem);
