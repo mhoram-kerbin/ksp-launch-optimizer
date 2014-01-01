@@ -1,4 +1,6 @@
-all: alpha ksp-launch-optimizer.pdf
+regular: ksp-launch-optimizer.pdf alpha
+
+all: alpha launch simple ksp-launch-optimizer.pdf
 
 include ../Makefile_linux.inc
 
