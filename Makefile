@@ -1,4 +1,4 @@
-all: alpha documentation.pdf
+all: alpha ksp-launch-optimizer.pdf
 
 include ../Makefile_linux.inc
 
@@ -39,6 +39,6 @@ simple.o: simple.cxx simple.hh setup.hh Makefile
 simple: $(SIMPLE_O) $(PSOPT_LIBS) $(DMATRIX_LIBS) $(SPARSE_LIBS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(LDFLAGS)
 
-documentation.pdf: documentation.tex
-	latexmk -pdf documentation.tex
-	latexmk -c documentation.tex
+ksp-launch-optimizer.pdf: ksp-launch-optimizer.tex
+	latexmk -pdf ksp-launch-optimizer.tex
+	latexmk -c ksp-launch-optimizer.tex
