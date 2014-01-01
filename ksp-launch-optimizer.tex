@@ -27,7 +27,6 @@ frame=single           % adds a frame around the code
 \newcommand{\Vel}{\overrightarrow{V}}
 \newcommand{\absvec}[1]{\left|\left|{#1}\right|\right|}
 
-\newcommand{\DONE}{{DONE}}
 \begin{document}
 
 \title{Kerbal Launch Optimizer}
@@ -129,10 +128,10 @@ $t_f^p$ denotes the final time of stage $p$.
 \section{Bound Constraints}
 
 \begin{itemize}
-\item $0\leq Pos_X, Pos_Y, Pos_z \leq SoiRadius$ \DONE
-\item $0\leq Thrust_X, Thrust_Y, Thrust_z \leq MaxThrust^p$ \DONE
-\item $-PlanetMaxV\leq Vel_X, Vel_Y, Vel_z \leq PlanetMaxV^p$ \DONE
-\item $TotalMass^p - PropellantMass^p \leq Mass(t) \leq TotalMass^p$ \DONE
+\item $0\leq Pos_X, Pos_Y, Pos_z \leq SoiRadius$
+\item $0\leq Thrust_X, Thrust_Y, Thrust_z \leq MaxThrust^p$
+\item $-PlanetMaxV\leq Vel_X, Vel_Y, Vel_z \leq PlanetMaxV^p$
+\item $TotalMass^p - PropellantMass^p \leq Mass(t) \leq TotalMass^p$
 \end{itemize}
 
 \section{Path Constraints}
@@ -140,49 +139,51 @@ $t_f^p$ denotes the final time of stage $p$.
 \begin{itemize}
 \item $R(t) \geq PlanetRadius$
 \item $R(t) \leq SoiRadius$
-\item $Length(ThrustX(t), ThrustY(t), ThrustZ(t)) \leq MaxThrust^p$ \DONE
+\item $Length(ThrustX(t), ThrustY(t), ThrustZ(t)) \leq MaxThrust^p$
 \item In all but the final phase the velocity vector points away from the planet core???
 \end{itemize}
 
 \section{Derivative Constraints}
 
 \begin{itemize}
-\item $\dot{\overrightarrow{Position}} = \overrightarrow{Velocity}$ \DONE
-\item $\dot{\overrightarrow{Velocity}} = Mass^{-1}\cdot\left(\overrightarrow{Thrust} + \overrightarrow{Drag} + \overrightarrow{Gravity}\right)$ \DONE
-\item $\dot{Mass} = (ISP(Altitude) \cdot g_0)^{-1}\cdot\left|\overrightarrow{Thrust}\right|$ \DONE
+\item $\dot{\overrightarrow{Position}} = \overrightarrow{Velocity}$
+\item $\dot{\overrightarrow{Velocity}} = Mass^{-1}\cdot\left(\overrightarrow{Thrust} + \overrightarrow{Drag} + \overrightarrow{Gravity}\right)$
+\item $\dot{Mass} = (ISP(Altitude) \cdot g_0)^{-1}\cdot\left|\overrightarrow{Thrust}\right|$
 \end{itemize}
 \section{Events}
 
 \begin{itemize}
-\item $ThrustX(0) \cdot PosY(0) = ThrustY(0) \cdot PosX(0)$ \DONE
-\item $ThrustX(0) \cdot PosZ(0) = ThrustZ(0) \cdot PosX(0)$ \DONE
-\item Launch position and velocity are at launchpad \DONE
-\item Launch Position and Velocity Vector are 90\textdegree apart \DONE
-\item Launch Mass is Total Mass of ship \DONE
-\item $Periapsis(t_f^{last}) \geq TargetOrbit$ \DONE
+\item $ThrustX(0) \cdot PosY(0) = ThrustY(0) \cdot PosX(0)$
+\item $ThrustX(0) \cdot PosZ(0) = ThrustZ(0) \cdot PosX(0)$
+\item Launch position and velocity are at launchpad
+\item Launch Position and Velocity Vector are 90\textdegree apart
+\item Launch Mass is Total Mass of ship
+\item $Periapsis(t_f^{last}) \geq TargetOrbit$
 \end{itemize}
 
 \section{Phase Linkage Constraints}
 
 \begin{itemize}
-\item $t_0^{p+1} = t_f^p$ \DONE
-\item $PosX(t_0^{p+1}) = PosX(t_f^p)$ \DONE
-\item $PosY(t_0^{p+1}) = PosY(t_f^p)$ \DONE
-\item $PosZ(t_0^{p+1}) = PosZ(t_f^p)$ \DONE
-\item $VelX(t_0^{p+1}) = VelX(t_f^p)$ \DONE
-\item $VelY(t_0^{p+1}) = VelY(t_f^p)$ \DONE
-\item $VelZ(t_0^{p+1}) = VelZ(t_f^p)$ \DONE
-\item $Mass(t_f^p) - (TotalMass^p - PropellantMass^p) + TotalMass^{p+1} = Mass(t_0^{p+1})$ \DONE
+\item $t_0^{p+1} = t_f^p$
+\item $PosX(t_0^{p+1}) = PosX(t_f^p)$
+\item $PosY(t_0^{p+1}) = PosY(t_f^p)$
+\item $PosZ(t_0^{p+1}) = PosZ(t_f^p)$
+\item $VelX(t_0^{p+1}) = VelX(t_f^p)$
+\item $VelY(t_0^{p+1}) = VelY(t_f^p)$
+\item $VelZ(t_0^{p+1}) = VelZ(t_f^p)$
+\item $Mass(t_f^p) - (TotalMass^p - PropellantMass^p) + TotalMass^{p+1} = Mass(t_0^{p+1})$
 \end{itemize}
 
 \section{Performance Index}
 
 \begin{itemize}
-\item $J := - Mass(t_f^{final})$ \DONE
+\item $J := - Mass(t_f^{final})$
 \end{itemize}
-or TargetPeriapsis - FinalPeriapsis, if fuel has run out. \DONE
+or TargetPeriapsis - FinalPeriapsis, if fuel has run out.
 
 \chapter{Implementation}
+
+Mumps is used as linear solver.
 
 \section{States}
 
@@ -243,5 +244,19 @@ This gives for the two stages:
 Rocket will Launch from 0\textdegree5'49'' South, 0\textdegree0'0''
 East \sout{74\textdegree33'27'' West} at an elevation of 77.1m above
 sealevel.
+
+\chapter{Notes}
+
+\section{Experience}
+
+\begin{itemize}
+\item NODES = [10, 50] and NLP\_MAX\_ITER = 3000 seem to be a upper
+  bound for 4GB memory.
+\item Sometimes increasing the number of iterations results in
+  oscillating control-paths without improving the endpoint cost.
+\item NLP\_MAX\_ITER in the range 500 to 1000 seem to bring good
+  results.
+\item NODES = [10, 40] brought good results in multiple applications
+\end{itemize}
 
 \end{document}
