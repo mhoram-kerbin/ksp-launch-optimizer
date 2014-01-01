@@ -111,3 +111,6 @@ void calc_ground_velocity_vector(adouble* states, adouble* gvv);
 #define SEMI_MAJOR(POS_NORM, VEL_NORM) (1 / (2 / (POS_NORM) - (VEL_NORM) * (VEL_NORM) / PLANET_MU))
 
 #define CALC_DENSITY(altitude) (calc_pressure(altitude) * CONVERSION_FACTOR)
+
+// Code stuff
+#define CC(x) const_cast<char *>(x)

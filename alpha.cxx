@@ -484,22 +484,24 @@ int main(void)
   }
   pos = extend_dmatrix_row(pos, periapsis);
 
+  char* t_str = CC("time(s)");
+  char* p_str = CC("png");
 
-  plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri");
-  plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"), "x y z sum");
-  plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum");
-  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), "mass");
-  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), "ecc");
-  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, ground velocity and velocity (deg)"), "thr vel gro");
-  plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"));
+  plot(t,pos,problem.name, t_str, CC("Position (km)"), CC("x y z sum peri"));
+  plot(t,vel,problem.name, t_str, CC("Velocity (m/s)"), CC("x y z sum"));
+  plot(t,u,problem.name, t_str, CC("Thrust (kN)"), CC("x y z sum"));
+  plot(t,mass,problem.name, t_str, CC("Mass (kg)"), CC("mass"));
+  plot(t,e,problem.name, t_str, CC("Eccentricity"), CC("ecc"));
+  plot(t,pitch,problem.name, t_str, CC("Pitch of thrust, ground velocity and velocity (deg)"), CC("thr grv vel"));
+  plot(t,altitude,problem.name, t_str, CC("Altitude (km)"));
 
-  plot(t,pos,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Position (km)"), "x y z sum peri", "png", "pos-alpha.png");
-  plot(t,vel,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Velocity (m/s)"), "x y z sum", "png", "vel-alpha.png");
-  plot(t,u,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Thrust (kN)"), "x y z sum", "png", "u-alpha.png");
-  plot(t,mass,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Mass (kg)"), "mass", "png", "mass-alpha.png");
-  plot(t,e,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Eccentricity"), "ecc", "png", "e-alpha.png");
-  plot(t,pitch,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Pitch of thrust, ground velocity and velocity (deg)"), "thr vel gro", "png", "pitch-alpha.png");
-  plot(t,altitude,problem.name, const_cast<char *>("time(s)"), const_cast<char *>("Altitude (km)"), NULL, "png", "altitude-alpha.png");
+  plot(t,pos,problem.name, t_str, CC("Position (km)"), CC("x y z sum peri"), p_str, CC("pos-alpha.png"));
+  plot(t,vel,problem.name, t_str, CC("Velocity (m/s)"), CC("x y z sum"), p_str, CC("vel-alpha.png"));
+  plot(t,u,problem.name, t_str, CC("Thrust (kN)"), CC("x y z sum"), p_str, CC("u-alpha.png"));
+  plot(t,mass,problem.name, t_str, CC("Mass (kg)"), CC("mass"), p_str, CC("mass-alpha.png"));
+  plot(t,e,problem.name, t_str, CC("Eccentricity"), CC("ecc"), p_str, CC("e-alpha.png"));
+  plot(t,pitch,problem.name, t_str, CC("Pitch of thrust, ground velocity and velocity (deg)"), CC("thr grv vel"), p_str, CC("pitch-alpha.png"));
+  plot(t,altitude,problem.name, t_str, CC("Altitude (km)"), NULL, p_str, CC("altitude-alpha.png"));
 
   //myplot(t, pos, problem.name, "AAAAAA time(s)", "Position (km)", "x y z sum peri");
 }
