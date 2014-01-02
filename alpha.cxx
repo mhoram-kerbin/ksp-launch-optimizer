@@ -135,7 +135,7 @@ adouble get_periapsis(adouble* states)
 	adouble ev[3];
 	cross(v, h, ev);
 	adouble pos_norm = norm(states[ST_POSX], states[ST_POSY], states[ST_POSZ]);
-	adouble mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+	adouble mu = PLANET_MU;
 	adouble vel_norm = sqrt( dot(v, v, 3) );
 
 	ev[0] = ev[0] / mu - p[0] / pos_norm;
@@ -456,7 +456,7 @@ int main(void)
   DMatrix e = DMatrix(1, cols);
   DMatrix periapsis = DMatrix(1, cols);
   DMatrix pitch = DMatrix(4, cols);
-  //  double mu = GRAVITATIONAL_CONSTANT * PLANET_MASS;
+  //  double mu = PLANET_MU;
   for (i=1;i<=cols;i++) {
 	adouble states[6];
 	states[ST_POSX] = pos(1,i);
