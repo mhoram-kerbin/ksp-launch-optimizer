@@ -106,7 +106,7 @@ void calc_ground_velocity_vector(adouble* states, adouble* gvv);
 
 // Constant calculations
 
-#define ATMOSPHERIC_HEIGHT (-log(1 / 1000000.0 *) * PLANET_SCALE_HEIGHT)
+#define ATMOSPHERIC_HEIGHT (-log(1 / 1000000.0) * PLANET_SCALE_HEIGHT)
 #define PLANET_MU (GRAVITATIONAL_CONSTANT * PLANET_MASS)
 
 #define SEMI_MAJOR(POS_NORM, VEL_NORM) (1 / (2 / (POS_NORM) - (VEL_NORM) * (VEL_NORM) / PLANET_MU))
