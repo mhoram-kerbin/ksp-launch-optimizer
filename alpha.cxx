@@ -115,7 +115,14 @@ adouble norm2(adouble x, adouble y, adouble z)
 adouble calc_pressure(adouble altitude)
 {
   return PLANET_P_0 * exp(-altitude / PLANET_SCALE_HEIGHT);
-}
+
+//  Code to approximate the pressure-falloff
+//  double f = 0.1;
+//  adouble res = PLANET_P_0 * exp(-altitude / PLANET_SCALE_HEIGHT) / (1 + exp(f * (altitude - ATMOSPHERIC_HEIGHT)));
+//  adouble res2 = PLANET_P_0 * exp(-altitude / PLANET_SCALE_HEIGHT);
+//  //cout << "p(" << altitude << ") = " << res <<  " / " << res2 << endl;
+//  return res;
+ }
 
 adouble get_isp(adouble pressure, adouble isp_0, adouble isp_vac)
 {
