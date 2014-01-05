@@ -190,8 +190,6 @@ Mumps is used as linear solver.
 As an approximation, the pressure above atmospheric height is not 0
 but calculated according to the formula for the atmosphere.
 
-Tests showed that a separate phase is necessary for this effect.
-
 \section{States}
 
 The state of the simulation consists of the following items:
@@ -265,5 +263,32 @@ sealevel.
   results.
 \item NODES = [10, 40] brought good results in multiple applications
 \end{itemize}
+
+\section{Atmospheric pressure}
+
+PSOPT requires the continuousity of used functions and their first
+derivative - otherwise the algorithm might not find a solution. A
+simple if-statemet that returns 0 if the altitude is above the
+atmospheric height caused problems during tests.
+
+We can try to approximate this by multiplying it with a logistic
+function.
+
+\begin{align}
+  p(alt) &=
+  \left\{
+      \begin{array}{l l}
+        p_0 \cdot exp\left({\frac{-alt}{ScaleHeight}}\right) & \textrm{if } alt > AH^{(Name)}\\
+        0 &\textrm{if } alt \leq AtmosphericHeight
+      \end{array}
+    \right.\nonumber\\
+    &\approx p_0^{(Name)} \cdot exp\left({\frac{-alt}{ScaleHeight}}\right) \cdot \frac{1}{1 + exp(f \cdot(alt - AtmosphericHeight))}
+\end{align}
+
+The additional parameter $0 < f$ is used to specity how steep the jump
+to 0 should happen. During tests, values larger than 0.001 caused the
+algoritm to not converge.  Since this gives a considerable error
+within 10km of the atmospheric height, we will use the incorrect
+non-approximated formula for the pressure.
 
 \end{document}
