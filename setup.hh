@@ -44,11 +44,12 @@
 
 #define STAGES (2) // dimensionless number of stages
 
-// STAGE_PARAM contains an array of array of doubles
-// the first array contains information about the first stage
+// STAGE_PARAM contains an array of array of doubles.  Each element of
+// the outer array contains information about the stages.  The first
+// element represets the first stage and so on.
 //
 // The elements of the inner arrays contain the following information
-// 1. mass of fuel in kg
+// 1. mass of fuel in this stage in kg
 // 2. total mass of ship at begin of the stage in kg
 // 3. thrust of the engines in kN
 // 4. ISP at 1atm in s
