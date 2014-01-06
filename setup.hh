@@ -1,7 +1,7 @@
 /*
   setup.hh
 
-  Copyright 2013 Mhoram Kerbin
+  Copyright 2013, 2014 Mhoram Kerbin
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
 
 // PSOPT Configuration
 
-#define SUBDIVISIONS 10
-#define NODES "[10, 40]"
-#define NLP_MAX_ITER 900
+#define SUBDIVISIONS 20
+#define NODES "[20, 50]"
+#define NLP_MAX_ITER 2000
 
 // PROBLEM Configuration
 
