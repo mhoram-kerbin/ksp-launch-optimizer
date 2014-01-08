@@ -25,8 +25,8 @@
 // PSOPT Configuration
 
 #define SUBDIVISIONS 20
-#define NODES "[20, 50]"
-#define NLP_MAX_ITER 2000
+#define NODES "[10, 20, 50]"
+#define NLP_MAX_ITER 500
 
 // PROBLEM Configuration
 
@@ -39,8 +39,8 @@
 #define PLANET_MAX_V (10000) // m/s
 #define LAUNCH_LATITUDE (-(0 + 5.0/60 + 49.0/3600)/180 * M_PI) // dimensionless
 #define LAUNCH_LONGITUDE 0 // +(-(74.0 + 33.0/60 + 27.0/3600)/180 * M_PI) // dimensionless
-#define LAUNCH_ELEVATION (77.1) // m
-#define TARGET_PERIAPSIS (100000) // m as altitude above sealevel
+#define LAUNCH_ELEVATION (77.6) // m
+#define TARGET_PERIAPSIS (74000) // m as altitude above sealevel
 
 #define STAGES (2) // dimensionless number of stages
 
@@ -56,6 +56,6 @@
 // 5. ISP in vacuun in s
 // 6. drag coefficient (dimensionless)
 // 7. minimal duration of stage in s (will probably be removed)
-#define STAGE_PARAM {{32000, 47830, 650.0, 330, 350, 0.2, 58}, {4000, 7780,  60.0, 220, 800, 0.2, 117}}
+#define STAGE_PARAM {{4000, 11190, 215.0, 320, 370, 0.2, 19}, {4000, 7190,  215.0, 320, 370, 0.2, 29}}
 
 #define STAGE_TIME_MAX_FACTOR 10 // factor for maximum duration of stages
