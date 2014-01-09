@@ -463,7 +463,7 @@ int main(void)
   DMatrix e = DMatrix(1, cols);
   DMatrix periapsis = DMatrix(1, cols);
   DMatrix pitch = DMatrix(4, cols);
-  DMatrix twr = DMatrix(2, cols);
+  DMatrix twr = DMatrix(3, cols);
   //  double mu = PLANET_MU;
   for (i=1;i<=cols;i++) {
 	adouble states[6];
@@ -496,7 +496,8 @@ int main(void)
 	pitch(4, i) = u(4, i) / StageParameter[stage-1][SP_THRUST] * 100;
 	//	cout << StageParameter[stage-1][SP_THRUST] << endl;
 	twr(1, i) = u(4, i) * 1000 / (mass(1, i) *9.81 );
-	twr(2, i) = pitch(4, i) / 100;
+	twr(2, i) = StageParameter[stage-1][SP_THRUST] * 1000 / (mass(1, i) *9.81 );
+	twr(3, i) = pitch(4, i) / 100;
   }
   pos = extend_dmatrix_row(pos, periapsis);
 
@@ -510,7 +511,7 @@ int main(void)
   plot(t,e,problem.name, t_str, CC("Eccentricity"), CC("ecc"));
   plot(t,pitch,problem.name, t_str, CC("Pitch (deg) & Thrust (%)"), CC("ori grv vel thr"));
   plot(t,altitude,problem.name, t_str, CC("Altitude (km)"));
-  plot(t,twr,problem.name, t_str, CC("TWR & Thrust (%)"), CC("TWR thr"));
+  plot(t,twr,problem.name, t_str, CC("TWR & Thrust (%)"), CC("TWR MaxTWR thr"));
 
   plot(t,pos,problem.name, t_str, CC("Position (km)"), CC("x y z sum peri"), p_str, CC("pos-alpha.png"));
   plot(t,vel,problem.name, t_str, CC("Velocity (m/s)"), CC("x y z sum"), p_str, CC("vel-alpha.png"));
@@ -519,7 +520,7 @@ int main(void)
   plot(t,e,problem.name, t_str, CC("Eccentricity"), CC("ecc"), p_str, CC("e-alpha.png"));
   plot(t,pitch,problem.name, t_str, CC("Pitch (deg) & Thrust (%)"), CC("ori grv vel thr"), p_str, CC("pitch-alpha.png"));
   plot(t,altitude,problem.name, t_str, CC("Altitude (km)"), NULL, p_str, CC("altitude-alpha.png"));
-  plot(t,twr,problem.name, t_str, CC("TWR & Thrust (%)"), CC("TWR thr"), p_str, CC("twr-alpha.png"));
+  plot(t,twr,problem.name, t_str, CC("TWR & Thrust (%)"), CC("TWR MaxTWR thr"), p_str, CC("twr-alpha.png"));
 
   //myplot(t, pos, problem.name, "AAAAAA time(s)", "Position (km)", "x y z sum peri");
 }
