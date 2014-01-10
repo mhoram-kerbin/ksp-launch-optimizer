@@ -1,12 +1,12 @@
 regular: ksp-launch-optimizer.pdf alpha
 
-all: alpha launch simple ksp-launch-optimizer.pdf
+all: alpha launch ksp-launch-optimizer.pdf
 
 include ../Makefile_linux.inc
 
 
 clean:
-	rm -f *.o *.pdf *.dat *.txt gnuplot.scp *.out simple mesh_statistics_*.tex *.tap *.png *.dat launch alpha
+	rm -f *.o *.pdf *.dat *.txt gnuplot.scp *.out mesh_statistics_*.tex *.tap *.png *.dat launch alpha
 
 KD = $(USERHOME)/ksp-physics-documentation/src/
 KAPRI = -I$(KD) $(KD)Cartesian.o $(KD)Engine.o $(KD)Planet.o $(KD)Vector.o
@@ -19,10 +19,6 @@ ALPHA = alpha   $(SNOPT_WRAPPER)
 
 ALPHA_O = $(ALPHA:%=$(EXAMPLESDIR)/%.o)
 
-SIMPLE = simple   $(SNOPT_WRAPPER)
-
-SIMPLE_O = $(SIMPLE:%=$(EXAMPLESDIR)/%.o)
-
 alpha.o: alpha.cxx alpha.hh setup.hh Makefile
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
@@ -34,12 +30,6 @@ launch.o: launch.cxx launch.hh setup.hh Makefile
 
 launch: $(LAUNCH_O) $(PSOPT_LIBS) $(DMATRIX_LIBS) $(SPARSE_LIBS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(KAPRI) $(LDFLAGS)
-
-simple.o: simple.cxx simple.hh setup.hh Makefile
-	$(CXX) -c $(CXXFLAGS) $< -o $@
-
-simple: $(SIMPLE_O) $(PSOPT_LIBS) $(DMATRIX_LIBS) $(SPARSE_LIBS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ -L$(LIBDIR) $(ALL_LIBRARIES) $(LDFLAGS)
 
 ksp-launch-optimizer.pdf: ksp-launch-optimizer.tex
 	latexmk -pdf ksp-launch-optimizer.tex
